@@ -35,10 +35,10 @@ if (( c == 1 )); then
 	make RELEASE=$r clean
 fi
 if (( d == 1 )); then
-	make debug
+	make -j4 debug
 	exit
 fi
-make RELEASE=$r all
+make -j4 RELEASE=$r all
 if (( o == 1 )); then
 	exit
 fi
