@@ -41,13 +41,27 @@ int main() {
 
 /*#include <iostream>
 
+#include "lexer.h"
+#include <iostream>
+#include <string.h>
 using namespace std;
 
 int main(int argc, char **argv) {
+
   if (argc < 2) {
     cout << "Wrong number of arguments\n";
     cout << "Usage: " << argv[0] << " <filename>\n";
     return 1;
   }
   return 0;
-}*/
+}
+  cout<<"start"<<endl;
+  Lexer l("IF+-123 foo*THEN/");
+  while (l.curChar != '\0'){
+    Token t = l.getToken();
+               cout<<t.text<<" -- "<< t.type <<endl;
+  }
+    return 0;
+}
+  */
+>>>>>>> origin/Rana_Lexer
