@@ -1,5 +1,6 @@
 #include <iostream>
 #include "lexer.h"
+#include <string.h>
 using namespace std;
 
 int main(int argc, char **argv) {
@@ -10,10 +11,11 @@ int main(int argc, char **argv) {
     return 1;
   }
   */
-  Lexer l("1+2+3+4=16");
-  while (l.Peek() != '\0'){
+  cout<<"start"<<endl;
+  Lexer l("IF+-123 foo*THEN/");
+  while (l.curChar != '\0'){
     Token t = l.getToken();
-    cout<<t.text<<" "<< t.type <<endl;
+               cout<<t.text<<" -- "<< t.type <<endl;
   }
-  return 0;
+    return 0;
 }

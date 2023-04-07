@@ -1,17 +1,8 @@
 #pragma once
 //EOF already exists and it's equal to -1
-#define NUM_CASE case '0': \
-case '1':  \
-case '2': \
-case '3': \
-case '4': \
-case '5': \
-case '6': \
-case '7': \
-case '8': \
-case '9':
 enum TOKEN_TYPE {
-    _EOF= -1
+	NONE = -2 
+    ,_EOF= -1
 	,NEWLINE = 0
 	,NUMBER = 1
 	,IDENT = 2
@@ -44,9 +35,11 @@ enum TOKEN_TYPE {
 
 class Token{
 public:
-    TOKEN_TYPE type ;
+    int type ;
     std::string text ;
-    Token(std::string Text,TOKEN_TYPE T);
+    Token(std::string Text,int T);
+	Token();
+	void stringToType(std::string s);
 };
 class Lexer{
 public:
@@ -57,4 +50,7 @@ public:
     void nextChar();
     char Peek();
     Token getToken();
+	int abort(std::string message);
+	void skipWhitespace();
+	void skipComment();
 };
