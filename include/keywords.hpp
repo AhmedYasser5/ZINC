@@ -3,59 +3,162 @@
 #include <string>
 #include <vector>
 
+#define Token int
+
+/* 
+ * Program
+ * Block
+ * Comparison
+ * Expression
+ * Term
+ * Unary
+ * IntLiteral
+ * StringLiteral
+ * DoubleLiteral
+ * Identifer
+ * Print
+ * Assign
+ * Declare
+ */
+
+
+class Program : public ASTNode {
+private:
+  std::vector<ASTNode *> _statements;
+
+public:
+  Program(std::vector<ASTNode *> vec) { _statements = vec; }
+
+  ~Program() {
+    for (auto it : _statements)
+      delete it;
+    _statements.clear();
+  }
+
+  void accept(Visitor *visitor) override;
+
+  std::vector<ASTNode *> statements() const { return _statements; }
+};
+
 class Block : public ASTNode {
 private:
-  std::vector<ASTNode *> statements;
+  std::vector<ASTNode *> _statements;
 
 public:
-  Block(std::vector<ASTNode *> vec) { statements = vec; }
+  Block(std::vector<ASTNode *> vec) { _statements = vec; }
 
   ~Block() {
-    for (auto it : statements)
+    for (auto it : _statements)
       delete it;
-    statements.clear();
+    _statements.clear();
   }
 
   void accept(Visitor *visitor) override;
 
-  std::vector<ASTNode *> getStatements() const { return statements; }
+  std::vector<ASTNode *> statements() const { return _statements; }
 };
 
-// A class for binary expressions
-class BinaryExpr : public ASTNode {
+class Comparison : public ASTNode {
 private:
-  char op;        // The operator
-  ASTNode *left;  // The pointer to the left operand
-  ASTNode *right; // The pointer to the right operand
+  std::string _op;
+  ASTNode *_left;
+  ASTNode *_right;
 
 public:
-  // A constructor that takes the operator and the operands as arguments
-  BinaryExpr(char op, ASTNode *left, ASTNode *right) {
-    this->op = op;
-    this->left = left;
-    this->right = right;
+  Comparison(ASTNode *left, std::string op, ASTNode *right) {
+    this->_left = left;
+    this->_op = op;
+    this->_right = right;
   }
 
-  // A destructor that deletes the operands
-  ~BinaryExpr() {
-    delete left;
-    delete right;
+  ~Comparison() {
+    delete _left;
+    delete _right;
   }
 
-  // A function to accept a visitor
+  ASTNode *left() const { return _left; }
+
+  ASTNode *right() const { return _right; }
+
+  std::string op() const { return _op; }
+
   void accept(Visitor *visitor) override;
-
-  // A function to get the operator
-  char getOp() const { return op; }
-
-  // A function to get the left operand
-  ASTNode *getLeft() const { return left; }
-
-  // A function to get the right operand
-  ASTNode *getRight() const { return right; }
 };
 
-// A class for integer literals
+class Expression : public ASTNode {
+private:
+  char _op;
+  ASTNode *_left;
+  ASTNode *_right;
+
+public:
+  Expression(ASTNode *left, char op, ASTNode *right) {
+    this->_left = left;
+    this->_op = op;
+    this->_right = right;
+  }
+
+  ~Expression() {
+    delete _left;
+    delete _right;
+  }
+
+  ASTNode *left() const { return _left; }
+
+  ASTNode *right() const { return _right; }
+
+  char op() const { return _op; }
+
+  void accept(Visitor *visitor) override;
+};
+
+class Term : public ASTNode {
+private:
+  char _op;
+  ASTNode *_left;
+  ASTNode *_right;
+
+public:
+  Term(ASTNode *left, char op, ASTNode *right) {
+    this->_left = left;
+    this->_op = op;
+    this->_right = right;
+  }
+
+  ~Term() {
+    delete _left;
+    delete _right;
+  }
+
+  ASTNode *left() const { return _left; }
+
+  ASTNode *right() const { return _right; }
+
+  char op() const { return _op; }
+
+  void accept(Visitor *visitor) override;
+};
+
+class Unary : public ASTNode {
+private:
+  char _op;
+  ASTNode *_primary;
+
+public:
+  Unary(char op, ASTNode *primary) {
+    this->_op = op;
+    this->_primary = primary;
+  }
+
+  ~Unary() { delete _primary; }
+
+  ASTNode *primary() const { return _primary; }
+
+  char op() const { return _op; }
+
+  void accept(Visitor *visitor) override;
+};
+
 class IntLiteral : public ASTNode {
 private:
   // The value
@@ -72,91 +175,102 @@ public:
   int getValue() const { return value; }
 };
 
-class Identifer : public ASTNode {
+class DoubleLiteral : public ASTNode {
 private:
-  std::string identifer;
-  ASTNode *variable;
+  // The value
+  double _value;
 
 public:
-  Identifer(std::string value, ASTNode *variable) {
-    this->identifer = value;
-    this->variable = variable;
-  }
+  // A constructor that takes the value as an argument
+  DoubleLiteral(double value) { _value = value; }
 
+  // A function to accept a visitor
   void accept(Visitor *visitor) override;
 
-  std::string getIdent() const { return identifer; }
-
-  ASTNode *getVariable() const { return variable; }
-
-  ~Identifer() { delete variable; }
+  // A function to get the value
+  double value() const { return _value; }
 };
 
-class Variable : public ASTNode {
+class StringLiteral : public ASTNode {
 private:
-  std::string name;
+  std::string _str;
 
 public:
-  Variable(std::string name) { this->name = name; }
+  StringLiteral(std::string str) { this->_str = str; }
 
   void accept(Visitor *visitor) override;
 
-  std::string getName() const { return name; }
+  std::string str() const { return _str; }
+};
+
+class Identifer : public ASTNode {
+private:
+  std::string _ident;
+
+public:
+  Identifer(std::string ident) { this->_ident = ident; }
+
+  void accept(Visitor *visitor) override;
+
+  std::string getIdent() const { return _ident; }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+class Print : public ASTNode {
+private:
+  ASTNode *_argument;
+
+public:
+  Print(ASTNode *argument) { this->_argument = argument; }
+
+  ~Print() { delete _argument; }
+
+  void accept(Visitor *visitor) override;
+
+  ASTNode *argument() const { return _argument; }
+};
+
+class Assign : public ASTNode {
+  private:
+    ASTNode* _expr;
+    ASTNode* _ident;
+  
+  public:
+    Assign(ASTNode* ident, ASTNode* expr) {
+      _ident = ident;
+      _expr = expr;
+    }
+
+    ASTNode* expr() const { return _expr; }
+
+    ASTNode* ident() const { return _ident; }
+    
+    void accept(Visitor* visitor) override;
 };
 
 class Declare : public ASTNode {
 private:
-  ASTNode *identifer;
-  ASTNode *expr;
+  ASTNode *_ident;
+  ASTNode *_expr;
+  std::string _data_type;
 
 public:
-  Declare(ASTNode *identifer, ASTNode *expr) {
-    this->identifer = identifer;
-    this->expr = expr;
+  Declare(ASTNode *identifer, ASTNode *expr, std::string data_type) {
+    _ident = identifer;
+    _expr = expr;
+    _data_type = data_type;
   }
 
   ~Declare() {
-    delete expr;
-    delete identifer;
+    delete _expr;
+    delete _ident;
   }
 
   void accept(Visitor *visitor) override;
 
-  ASTNode *getIdent() const { return identifer; }
+  ASTNode *ident() const { return _ident; }
 
-  ASTNode *getExpr() const { return expr; }
-};
+  ASTNode *expr() const { return _expr; }
 
-class Assign : public ASTNode {
-private:
-  ASTNode *expr;
-  std::string variable;
-
-public:
-  Assign(std::string var_name, ASTNode *expression) {
-    variable = var_name;
-    expr = expression;
-  }
-
-  ~Assign() { delete expr; }
-
-  void accept(Visitor *visitor) override;
-
-  std::string getVariable() const { return variable; }
-
-  ASTNode *getExpr() const { return expr; }
-};
-
-class Statement : public ASTNode {
-private:
-  ASTNode *statement;
-
-public:
-  Statement(ASTNode *statement) { this->statement = statement; }
-
-  ~Statement() { delete statement; }
-
-  void accept(Visitor *visitor) override;
-
-  ASTNode *getStatement() const { return statement; }
+  std::string data_type() const { return _data_type; }
 };
