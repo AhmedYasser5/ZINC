@@ -11,8 +11,6 @@ public:
 
   virtual void visit(Block *node) = 0;
 
-  virtual void visit(Program *node) = 0;
-
   virtual void visit(Comparison *node) = 0;
 
   virtual void visit(Expression *node) = 0;
@@ -27,7 +25,7 @@ public:
 
   virtual void visit(Identifer *node) = 0;
 
-  virtual void visit(Declare *node) = 0;
+  virtual void visit(Let *node) = 0;
 
   virtual void visit(Print *node) = 0;
 };

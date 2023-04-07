@@ -2,8 +2,7 @@
 #include "base.hpp"
 #include <string>
 #include <vector>
-
-#define Token int
+#include "lexer.hpp"
 
 /* 
  * Program
@@ -20,24 +19,6 @@
  * Assign
  * Declare
  */
-
-class Program : public ASTNode {
-private:
-  std::vector<ASTNode *> _statements;
-
-public:
-  Program(std::vector<ASTNode *> vec) { _statements = vec; }
-
-  ~Program() {
-    for (auto it : _statements)
-      delete it;
-    _statements.clear();
-  }
-
-  void accept(Visitor *visitor) override;
-
-  std::vector<ASTNode *> statements() const { return _statements; }
-};
 
 class Block : public ASTNode {
 private:
@@ -57,87 +38,6 @@ public:
   std::vector<ASTNode *> statements() const { return _statements; }
 };
 
-class Comparison : public ASTNode {
-private:
-  Token _op;
-  ASTNode *_left;
-  ASTNode *_right;
-
-public:
-  Comparison(ASTNode *left, Token op, ASTNode *right) {
-    this->_left = left;
-    this->_op = op;
-    this->_right = right;
-  }
-
-  ~Comparison() {
-    delete _left;
-    delete _right;
-  }
-
-  ASTNode *left() const { return _left; }
-
-  ASTNode *right() const { return _right; }
-
-  Token op() const { return _op; }
-
-  void accept(Visitor *visitor) override;
-};
-
-class Expression : public ASTNode {
-private:
-  char _op;
-  ASTNode *_left;
-  ASTNode *_right;
-
-public:
-  Expression(ASTNode *left, char op, ASTNode *right) {
-    this->_left = left;
-    this->_op = op;
-    this->_right = right;
-  }
-
-  ~Expression() {
-    delete _left;
-    delete _right;
-  }
-
-  ASTNode *left() const { return _left; }
-
-  ASTNode *right() const { return _right; }
-
-  char op() const { return _op; }
-
-  void accept(Visitor *visitor) override;
-};
-
-class Term : public ASTNode {
-private:
-  char _op;
-  ASTNode *_left;
-  ASTNode *_right;
-
-public:
-  Term(ASTNode *left, char op, ASTNode *right) {
-    this->_left = left;
-    this->_op = op;
-    this->_right = right;
-  }
-
-  ~Term() {
-    delete _left;
-    delete _right;
-  }
-
-  ASTNode *left() const { return _left; }
-
-  ASTNode *right() const { return _right; }
-
-  char op() const { return _op; }
-
-  void accept(Visitor *visitor) override;
-};
-
 class Unary : public ASTNode {
 private:
   char _op;
@@ -154,6 +54,87 @@ public:
   ASTNode *primary() const { return _primary; }
 
   char op() const { return _op; }
+
+  void accept(Visitor *visitor) override;
+};
+
+class Term : public ASTNode {
+private:
+  char _op;
+  Unary *_left;
+  Unary *_right;
+
+public:
+  Term(Unary *left, char op, Unary *right) {
+    this->_left = left;
+    this->_op = op;
+    this->_right = right;
+  }
+
+  ~Term() {
+    delete _left;
+    delete _right;
+  }
+
+  Unary *left() const { return _left; }
+
+  Unary *right() const { return _right; }
+
+  char op() const { return _op; }
+
+  void accept(Visitor *visitor) override;
+};
+
+class Expression : public ASTNode {
+private:
+  char _op;
+  Unary *_left;
+  Unary *_right;
+
+public:
+  Expression(Unary *left, char op, Unary *right) {
+    this->_left = left;
+    this->_op = op;
+    this->_right = right;
+  }
+
+  ~Expression() {
+    delete _left;
+    delete _right;
+  }
+
+  Unary *left() const { return _left; }
+
+  Unary *right() const { return _right; }
+
+  char op() const { return _op; }
+
+  void accept(Visitor *visitor) override;
+};
+
+class Comparison : public ASTNode {
+private:
+  Token _op;
+  Expression *_left;
+  Expression *_right;
+
+public:
+  Comparison(Expression *left, Token op, Expression *right) {
+    this->_left = left;
+    this->_op = op;
+    this->_right = right;
+  }
+
+  ~Comparison() {
+    delete _left;
+    delete _right;
+  }
+
+  ASTNode *left() const { return _left; }
+
+  ASTNode *right() const { return _right; }
+
+  Token op() const { return _op; }
 
   void accept(Visitor *visitor) override;
 };
@@ -213,20 +194,20 @@ public:
   ASTNode *argument() const { return _argument; }
 };
 
-class Declare : public ASTNode {
+class Let : public ASTNode {
 private:
   ASTNode *_ident;
   ASTNode *_expr;
   Token _data_type;
 
 public:
-  Declare(ASTNode *identifer, ASTNode *expr, Token data_type) {
+  Let(ASTNode *identifer, ASTNode *expr, Token data_type) {
     _ident = identifer;
     _expr = expr;
     _data_type = data_type;
   }
 
-  ~Declare() {
+  ~Let() {
     delete _expr;
     delete _ident;
   }
