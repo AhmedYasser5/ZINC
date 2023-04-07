@@ -21,8 +21,6 @@ public:
   
   virtual void visit(Unary *node) = 0;
 
-  virtual void visit(IntLiteral *node) = 0;
-
   virtual void visit(DoubleLiteral *node) = 0;
 
   virtual void visit(StringLiteral *node) = 0;
@@ -32,6 +30,4 @@ public:
   virtual void visit(Declare *node) = 0;
 
   virtual void visit(Print *node) = 0;
-  
-  virtual void visit(Assign *node) = 0;
 };
