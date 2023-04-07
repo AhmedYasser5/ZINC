@@ -19,3 +19,13 @@ void Identifer::accept(Visitor *visitor) { visitor->visit(this); }
 void Let::accept(Visitor *visitor) { visitor->visit(this); }
 
 void Print::accept(Visitor *visitor) { visitor->visit(this); }
+
+void Input::accept(Visitor *visitor) { visitor->visit(this); }
+
+void If::accept(Visitor *visitor) { visitor->visit(this); }
+
+void While::accept(Visitor *visitor) { visitor->visit(this); }
+
+void Goto::accept(Visitor *visitor) { vistor->visit(this); }
+
+void Label::accept(Visitor *visitor) { vistor->visit(this); }
