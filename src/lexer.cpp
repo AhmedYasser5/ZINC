@@ -12,7 +12,7 @@ Token::Token(){
 }
 Lexer::Lexer(std::string s)
 {
-    source = s ;
+    source = s + '\n';
     curChar = ' ';
     curPos = -1 ;
     nextChar();
