@@ -21,7 +21,6 @@
  * Declare
  */
 
-
 class Program : public ASTNode {
 private:
   std::vector<ASTNode *> _statements;
@@ -60,12 +59,12 @@ public:
 
 class Comparison : public ASTNode {
 private:
-  std::string _op;
+  Token _op;
   ASTNode *_left;
   ASTNode *_right;
 
 public:
-  Comparison(ASTNode *left, std::string op, ASTNode *right) {
+  Comparison(ASTNode *left, Token op, ASTNode *right) {
     this->_left = left;
     this->_op = op;
     this->_right = right;
@@ -80,7 +79,7 @@ public:
 
   ASTNode *right() const { return _right; }
 
-  std::string op() const { return _op; }
+  Token op() const { return _op; }
 
   void accept(Visitor *visitor) override;
 };
@@ -159,22 +158,6 @@ public:
   void accept(Visitor *visitor) override;
 };
 
-class IntLiteral : public ASTNode {
-private:
-  // The value
-  int value;
-
-public:
-  // A constructor that takes the value as an argument
-  IntLiteral(int value) { this->value = value; }
-
-  // A function to accept a visitor
-  void accept(Visitor *visitor) override;
-
-  // A function to get the value
-  int getValue() const { return value; }
-};
-
 class DoubleLiteral : public ASTNode {
 private:
   // The value
@@ -230,32 +213,14 @@ public:
   ASTNode *argument() const { return _argument; }
 };
 
-class Assign : public ASTNode {
-  private:
-    ASTNode* _expr;
-    ASTNode* _ident;
-  
-  public:
-    Assign(ASTNode* ident, ASTNode* expr) {
-      _ident = ident;
-      _expr = expr;
-    }
-
-    ASTNode* expr() const { return _expr; }
-
-    ASTNode* ident() const { return _ident; }
-    
-    void accept(Visitor* visitor) override;
-};
-
 class Declare : public ASTNode {
 private:
   ASTNode *_ident;
   ASTNode *_expr;
-  std::string _data_type;
+  Token _data_type;
 
 public:
-  Declare(ASTNode *identifer, ASTNode *expr, std::string data_type) {
+  Declare(ASTNode *identifer, ASTNode *expr, Token data_type) {
     _ident = identifer;
     _expr = expr;
     _data_type = data_type;
@@ -272,5 +237,5 @@ public:
 
   ASTNode *expr() const { return _expr; }
 
-  std::string data_type() const { return _data_type; }
+  Token data_type() const { return _data_type; }
 };

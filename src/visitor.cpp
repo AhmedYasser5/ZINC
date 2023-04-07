@@ -12,8 +12,6 @@ void Term::accept(Visitor *visitor) { visitor->visit(this); }
 
 void Unary::accept(Visitor *visitor) { visitor->visit(this); }
 
-void IntLiteral::accept(Visitor *visitor) { visitor->visit(this); }
-
 void DoubleLiteral::accept(Visitor *visitor) { visitor->visit(this); }
 
 void StringLiteral::accept(Visitor *visitor) { visitor->visit(this); }
@@ -21,7 +19,5 @@ void StringLiteral::accept(Visitor *visitor) { visitor->visit(this); }
 void Identifer::accept(Visitor *visitor) { visitor->visit(this); }
 
 void Declare::accept(Visitor *visitor) { visitor->visit(this); }
-
-void Assign::accept(Visitor *visitor) { visitor->visit(this); }
 
 void Print::accept(Visitor *visitor) { visitor->visit(this); }
