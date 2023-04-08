@@ -13,7 +13,7 @@ Token::Token() {
 bool Token::operator==(TOKEN_TYPE type) const { return this->type == type; }
 bool Token::operator!=(TOKEN_TYPE type) const { return !(*this == type); }
 Lexer::Lexer(std::string s) {
-  source = s;
+  source = s + '\n';
   curChar = ' ';
   curPos = -1;
   nextChar();
