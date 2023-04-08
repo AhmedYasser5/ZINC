@@ -9,7 +9,7 @@ public:
   virtual void accept(class Visitor *visitor) = 0;
 };
 
-class MathNode : ASTNode{
+class MathNode : public ASTNode {
 public:
   // A virtual destructor
   virtual ~MathNode() {}
@@ -18,7 +18,7 @@ public:
   virtual void accept(class Visitor *visitor) = 0;
 };
 
-class Primary : ASTNode{
+class Primary : public ASTNode {
 public:
   // A virtual destructor
   virtual ~Primary() {}
