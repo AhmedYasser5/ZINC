@@ -1,10 +1,10 @@
 #pragma once
 #include "base.hpp"
+#include "lexer.hpp"
 #include <string>
 #include <vector>
-#include "lexer.hpp"
 
-/* 
+/*
  * Program
  * Block
  * Comparison
@@ -219,4 +219,93 @@ public:
   ASTNode *expr() const { return _expr; }
 
   Token data_type() const { return _data_type; }
+};
+
+class If : public ASTNode {
+private:
+  Comparison *_comp;
+  Block *_block;
+
+public:
+  If(Comparison *comp, Block *block) {
+    _comp = comp;
+    _block = block;
+  }
+
+  ~If() {
+    delete _comp;
+    delete _block;
+  }
+
+  Block *block() const { return _block; }
+
+  Comparison *comparison() const { return _comp; }
+
+  void accept(Visitor *visitor) override;
+};
+
+class While : public ASTNode {
+  private:
+    Comparison* _comp;
+    Block *_block;
+
+  public:
+    While(Comparison *comp, Block *block)
+    {
+      _comp = comp;
+      _block = block;
+    }
+
+    ~While() {
+      delete _comp;
+      delete _block;
+    }
+    
+  void accept(Visitor *visitor) override;
+
+  Comparison* comparison() const { return _comp; }
+
+  Block *block() const { return _block; }
+};
+
+class Input : public ASTNode {
+  private:
+    Identifer *_ident;
+
+  public:
+    Input(Identifer *ident) { _ident = ident; }
+
+    ~Input() { delete _ident; }
+
+    void accept(Visitor* visitor) override;
+
+    Identifer *identifer() const { return _ident; }
+};
+
+class Goto : public ASTNode {
+  private:
+    Identifer *_ident;
+
+  public:
+    Goto(Identifer *ident) { _ident = ident; }
+
+    ~Goto() { delete _ident; }
+
+    void accept(Visitor* visitor) override;
+
+    Identifer *identifer() const { return _ident; }
+};
+
+class Label : public ASTNode {
+  private:
+    Identifer *_ident;
+
+  public:
+    Label(Identifer *ident) { _ident = ident; }
+
+    ~Label() { delete _ident; }
+
+    void accept(Visitor* visitor) override;
+
+    Identifer *identifer() const { return _ident; }
 };
