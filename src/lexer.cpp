@@ -2,7 +2,7 @@
 #include <iostream>
 #include "../include/lexer.h"
 
-Token::Token(std::string Text,int T){
+Token::Token(std::string Text,TOKEN_TYPE T){
     text = Text ;
     type = T ;
     }
@@ -57,6 +57,10 @@ void Token::stringToType(std::string s){
         else if(s== "ENDWHILE"){
         text = s ;
         type = ENDWHILE;
+        }
+        else if (s == "PRINT"){
+            text =s ; 
+            type = PRINT;
         }
         else{
         text = s ;

@@ -37,7 +37,7 @@ class Token{
 public:
     int type ;
     std::string text ;
-    Token(std::string Text,int T);
+    Token(std::string Text,TOKEN_TYPE T);
 	Token();
 	void stringToType(std::string s);
 };
