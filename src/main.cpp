@@ -29,6 +29,6 @@ int main(int argc, char **argv) {
     return 1;
   }
   */
-  Test("/home/rana/Desktop/ZINC/src/test.txt");
+  Test("./src/test.txt");
     return 0;
 }
