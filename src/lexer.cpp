@@ -10,6 +10,8 @@ Token::Token() {
   text = " ";
   type = NONE;
 }
+bool Token::operator==(TOKEN_TYPE type) const { return this->type == type; }
+bool Token::operator!=(TOKEN_TYPE type) const { return !(*this == type); }
 Lexer::Lexer(std::string s) {
   source = s;
   curChar = ' ';
@@ -47,6 +49,9 @@ void Token::stringToType(std::string s) {
   } else if (s == "ENDWHILE") {
     text = s;
     type = ENDWHILE;
+  } else if (s == "PRINT") {
+    text = s;
+    type = PRINT;
   } else {
     text = s;
     type = IDENT;
