@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string.h>
 
-Token::Token(std::string Text, int T) {
+Token::Token(std::string Text, TOKEN_TYPE T) {
   text = Text;
   type = T;
 }
