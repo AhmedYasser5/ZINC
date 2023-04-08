@@ -14,7 +14,7 @@
  * IntLiteral
  * StringLiteral
  * DoubleLiteral
- * Identifer
+ * Identifier
  * Print
  * Assign
  * Declare
@@ -30,7 +30,6 @@ public:
   ~Block() {
     for (auto it : _statements)
       delete it;
-    _statements.clear();
   }
 
   void accept(Visitor *visitor) override;
@@ -157,26 +156,26 @@ public:
 
 class StringLiteral : public ASTNode {
 private:
-  Token _str;
+  std::string _str;
 
 public:
-  StringLiteral(Token str) { this->_str = str; }
+  StringLiteral(std::string str) { this->_str = str; }
 
   void accept(Visitor *visitor) override;
 
-  Token str() const { return _str; }
+  std::string str() const { return _str; }
 };
 
-class Identifer : public Primary {
+class Identifier : public Primary {
 private:
-  Token _ident;
+  std::string _ident;
 
 public:
-  Identifer(Token ident) { this->_ident = ident; }
+  Identifier(std::string ident) { this->_ident = ident; }
 
   void accept(Visitor *visitor) override;
 
-  Token getIdent() const { return _ident; }
+  std::string ident() const { return _ident; }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -196,15 +195,13 @@ public:
 
 class Let : public ASTNode {
 private:
-  ASTNode *_ident;
-  ASTNode *_expr;
-  Token _data_type;
+  Identifier *_ident;
+  MathNode *_expr;
 
 public:
-  Let(ASTNode *identifer, ASTNode *expr, Token data_type) {
+  Let(Identifier *identifer, MathNode *expr) {
     _ident = identifer;
     _expr = expr;
-    _data_type = data_type;
   }
 
   ~Let() {
@@ -214,11 +211,9 @@ public:
 
   void accept(Visitor *visitor) override;
 
-  ASTNode *ident() const { return _ident; }
+  Identifier *ident() const { return _ident; }
 
-  ASTNode *expr() const { return _expr; }
-
-  Token data_type() const { return _data_type; }
+  MathNode *expr() const { return _expr; }
 };
 
 class If : public ASTNode {
@@ -245,67 +240,66 @@ public:
 };
 
 class While : public ASTNode {
-  private:
-    Comparison* _comp;
-    Block *_block;
+private:
+  Comparison *_comp;
+  Block *_block;
 
-  public:
-    While(Comparison *comp, Block *block)
-    {
-      _comp = comp;
-      _block = block;
-    }
+public:
+  While(Comparison *comp, Block *block) {
+    _comp = comp;
+    _block = block;
+  }
 
-    ~While() {
-      delete _comp;
-      delete _block;
-    }
-    
+  ~While() {
+    delete _comp;
+    delete _block;
+  }
+
   void accept(Visitor *visitor) override;
 
-  Comparison* comparison() const { return _comp; }
+  Comparison *comparison() const { return _comp; }
 
   Block *block() const { return _block; }
 };
 
 class Input : public ASTNode {
-  private:
-    Identifer *_ident;
+private:
+  Identifier *_ident;
 
-  public:
-    Input(Identifer *ident) { _ident = ident; }
+public:
+  Input(Identifier *ident) { _ident = ident; }
 
-    ~Input() { delete _ident; }
+  ~Input() { delete _ident; }
 
-    void accept(Visitor* visitor) override;
+  void accept(Visitor *visitor) override;
 
-    Identifer *identifer() const { return _ident; }
+  Identifier *identifer() const { return _ident; }
 };
 
 class Goto : public ASTNode {
-  private:
-    Identifer *_ident;
+private:
+  Identifier *_ident;
 
-  public:
-    Goto(Identifer *ident) { _ident = ident; }
+public:
+  Goto(Identifier *ident) { _ident = ident; }
 
-    ~Goto() { delete _ident; }
+  ~Goto() { delete _ident; }
 
-    void accept(Visitor* visitor) override;
+  void accept(Visitor *visitor) override;
 
-    Identifer *identifer() const { return _ident; }
+  Identifier *identifer() const { return _ident; }
 };
 
 class Label : public ASTNode {
-  private:
-    Identifer *_ident;
+private:
+  Identifier *_ident;
 
-  public:
-    Label(Identifer *ident) { _ident = ident; }
+public:
+  Label(Identifier *ident) { _ident = ident; }
 
-    ~Label() { delete _ident; }
+  ~Label() { delete _ident; }
 
-    void accept(Visitor* visitor) override;
+  void accept(Visitor *visitor) override;
 
-    Identifer *identifer() const { return _ident; }
+  Identifier *identifer() const { return _ident; }
 };
