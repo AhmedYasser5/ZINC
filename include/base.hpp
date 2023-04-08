@@ -9,10 +9,19 @@ public:
   virtual void accept(class Visitor *visitor) = 0;
 };
 
-class MathNode {
+class MathNode : ASTNode{
 public:
   // A virtual destructor
   virtual ~MathNode() {}
+
+  // A pure virtual function to accept a visitor
+  virtual void accept(class Visitor *visitor) = 0;
+};
+
+class Primary : ASTNode{
+public:
+  // A virtual destructor
+  virtual ~Primary() {}
 
   // A pure virtual function to accept a visitor
   virtual void accept(class Visitor *visitor) = 0;

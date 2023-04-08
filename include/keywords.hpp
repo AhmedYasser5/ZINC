@@ -41,17 +41,17 @@ public:
 class Unary : public MathNode {
 private:
   Token _op;
-  MathNode *_primary;
+  Primary *_primary;
 
 public:
-  Unary(Token op, MathNode *primary) {
+  Unary(Token op, Primary *primary) {
     this->_op = op;
     this->_primary = primary;
   }
 
   ~Unary() { delete _primary; }
 
-  MathNode *primary() const { return _primary; }
+  Primary *primary() const { return _primary; }
 
   Token op() const { return _op; }
 
@@ -139,7 +139,7 @@ public:
   void accept(Visitor *visitor) override;
 };
 
-class DoubleLiteral : public ASTNode {
+class DoubleLiteral : public Primary {
 private:
   // The value
   double _value;
@@ -157,26 +157,26 @@ public:
 
 class StringLiteral : public ASTNode {
 private:
-  std::string _str;
+  Token _str;
 
 public:
-  StringLiteral(std::string str) { this->_str = str; }
+  StringLiteral(Token str) { this->_str = str; }
 
   void accept(Visitor *visitor) override;
 
-  std::string str() const { return _str; }
+  Token str() const { return _str; }
 };
 
-class Identifer : public ASTNode {
+class Identifer : public Primary {
 private:
-  std::string _ident;
+  Token _ident;
 
 public:
-  Identifer(std::string ident) { this->_ident = ident; }
+  Identifer(Token ident) { this->_ident = ident; }
 
   void accept(Visitor *visitor) override;
 
-  std::string getIdent() const { return _ident; }
+  Token getIdent() const { return _ident; }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
