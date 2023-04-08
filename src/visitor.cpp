@@ -14,7 +14,7 @@ void DoubleLiteral::accept(Visitor *visitor) { visitor->visit(this); }
 
 void StringLiteral::accept(Visitor *visitor) { visitor->visit(this); }
 
-void Identifer::accept(Visitor *visitor) { visitor->visit(this); }
+void Identifier::accept(Visitor *visitor) { visitor->visit(this); }
 
 void Let::accept(Visitor *visitor) { visitor->visit(this); }
 

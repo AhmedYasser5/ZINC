@@ -16,14 +16,14 @@ public:
   virtual void visit(Expression *node) = 0;
 
   virtual void visit(Term *node) = 0;
-  
+
   virtual void visit(Unary *node) = 0;
 
   virtual void visit(DoubleLiteral *node) = 0;
 
   virtual void visit(StringLiteral *node) = 0;
 
-  virtual void visit(Identifer *node) = 0;
+  virtual void visit(Identifier *node) = 0;
 
   virtual void visit(Let *node) = 0;
 
