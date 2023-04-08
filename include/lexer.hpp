@@ -40,6 +40,8 @@ public:
   std::string text;
   Token(std::string Text, TOKEN_TYPE T);
   Token();
+  bool operator==(TOKEN_TYPE type) const;
+  bool operator!=(TOKEN_TYPE type) const;
   void stringToType(std::string s);
 };
 class Lexer {
