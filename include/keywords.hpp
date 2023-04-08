@@ -38,34 +38,34 @@ public:
   std::vector<ASTNode *> statements() const { return _statements; }
 };
 
-class Unary : public ASTNode {
+class Unary : public MathNode {
 private:
-  char _op;
-  ASTNode *_primary;
+  Token _op;
+  MathNode *_primary;
 
 public:
-  Unary(char op, ASTNode *primary) {
+  Unary(Token op, MathNode *primary) {
     this->_op = op;
     this->_primary = primary;
   }
 
   ~Unary() { delete _primary; }
 
-  ASTNode *primary() const { return _primary; }
+  MathNode *primary() const { return _primary; }
 
-  char op() const { return _op; }
+  Token op() const { return _op; }
 
   void accept(Visitor *visitor) override;
 };
 
-class Term : public ASTNode {
+class Term : public MathNode {
 private:
-  char _op;
-  Unary *_left;
-  Unary *_right;
+  Token _op;
+  MathNode *_left;
+  MathNode *_right;
 
 public:
-  Term(Unary *left, char op, Unary *right) {
+  Term(MathNode *left, Token op, MathNode *right) {
     this->_left = left;
     this->_op = op;
     this->_right = right;
@@ -76,23 +76,23 @@ public:
     delete _right;
   }
 
-  Unary *left() const { return _left; }
+  MathNode *left() const { return _left; }
 
-  Unary *right() const { return _right; }
+  MathNode *right() const { return _right; }
 
-  char op() const { return _op; }
+  Token op() const { return _op; }
 
   void accept(Visitor *visitor) override;
 };
 
-class Expression : public ASTNode {
+class Expression : public MathNode {
 private:
-  char _op;
-  Unary *_left;
-  Unary *_right;
+  Token _op;
+  MathNode *_left;
+  MathNode *_right;
 
 public:
-  Expression(Unary *left, char op, Unary *right) {
+  Expression(MathNode *left, Token op, MathNode *right) {
     this->_left = left;
     this->_op = op;
     this->_right = right;
@@ -103,23 +103,23 @@ public:
     delete _right;
   }
 
-  Unary *left() const { return _left; }
+  MathNode *left() const { return _left; }
 
-  Unary *right() const { return _right; }
+  MathNode *right() const { return _right; }
 
-  char op() const { return _op; }
+  Token op() const { return _op; }
 
   void accept(Visitor *visitor) override;
 };
 
-class Comparison : public ASTNode {
+class Comparison : public MathNode {
 private:
   Token _op;
-  Expression *_left;
-  Expression *_right;
+  MathNode *_left;
+  MathNode *_right;
 
 public:
-  Comparison(Expression *left, Token op, Expression *right) {
+  Comparison(MathNode *left, Token op, MathNode *right) {
     this->_left = left;
     this->_op = op;
     this->_right = right;
@@ -130,9 +130,9 @@ public:
     delete _right;
   }
 
-  ASTNode *left() const { return _left; }
+  MathNode *left() const { return _left; }
 
-  ASTNode *right() const { return _right; }
+  MathNode *right() const { return _right; }
 
   Token op() const { return _op; }
 

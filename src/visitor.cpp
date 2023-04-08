@@ -26,6 +26,6 @@ void If::accept(Visitor *visitor) { visitor->visit(this); }
 
 void While::accept(Visitor *visitor) { visitor->visit(this); }
 
-void Goto::accept(Visitor *visitor) { vistor->visit(this); }
+void Goto::accept(Visitor *visitor) { visitor->visit(this); }
 
-void Label::accept(Visitor *visitor) { vistor->visit(this); }
+void Label::accept(Visitor *visitor) { visitor->visit(this); }
