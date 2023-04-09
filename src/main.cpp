@@ -18,7 +18,9 @@ int main() {
   auto parsed_program =
       Parser::parse(lexed_program.cbegin(), lexed_program.cend());
   if (!parsed_program.index()) {
-    cout << get<0>(parsed_program) << endl;
+    for (auto &error : get<0>(parsed_program)) {
+      cout << error << endl;
+    }
   }
   return 0;
 }
