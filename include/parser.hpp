@@ -1,8 +1,6 @@
 #pragma once
 #include "keywords.hpp"
 #include "lexer.hpp"
-#include <functional>
-#include <iostream>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -11,333 +9,348 @@
 
 namespace Parser {
 
-using std::function;
 using std::get;
 using std::initializer_list;
 using std::make_unique;
 using std::string;
 using std::unique_ptr;
 using std::unordered_map;
+using std::variant;
 using std::vector;
-template <typename T> using Result = std::variant<std::string, T>;
-#define Ok(x) (get<1>((x)))
-#define Error(x) (get<0>((x)))
-#define return_if_error(x)                                                     \
-  do {                                                                         \
-    if (!x.index()) {                                                          \
-      return Error(x);                                                         \
-    }                                                                          \
-  } while (0)
-#define extract_or_return(x, y)                                                \
-  do {                                                                         \
-    auto z = (y);                                                              \
-    return_if_error(z);                                                        \
-    unique_ptr<typename std::remove_pointer<                                   \
-        typename std::remove_reference<decltype(Ok(z))>::type>::type>          \
-        zz(Ok(z));                                                             \
-    x = std::move(zz);                                                         \
-  } while (0)
 
 template <typename TokenIterator> class Parser {
 public:
-  template <typename Iterator>
-  friend Result<unique_ptr<ASTNode>> parse(Iterator cbegin, Iterator cend);
+  unique_ptr<ASTNode> program(TokenIterator cbegin, TokenIterator cend) {
+    this->cbegin = cbegin;
+    this->cend = cend;
+    _errors.clear();
+    unique_ptr<ASTNode> program_tree(block());
+    if (match({_EOF}) == NONE) {
+      report_error("an EoF");
+    }
+    if (!_errors.empty()) {
+      return nullptr;
+    }
+    return program_tree;
+  }
 
-  Parser() = delete;
-  ~Parser() = delete;
+  vector<string> errors() const { return _errors; }
 
 private:
-  static bool consume(TokenIterator &cbegin, const TokenIterator &cend,
-                      TOKEN_TYPE type) {
-    if (match(cbegin, cend, {type}) == NONE) {
+#define return_if_error(x)                                                     \
+  do {                                                                         \
+    if (x == nullptr) {                                                        \
+      return nullptr;                                                          \
+    }                                                                          \
+  } while (0)
+
+  bool consume(TOKEN_TYPE type) {
+    if (match({type}) == NONE) {
       return false;
     }
-    while (match(cbegin, cend, {type}) != NONE)
+    while (match({type}) != NONE)
       ;
     return true;
   }
 
-  static Token match(TokenIterator &cbegin, const TokenIterator &cend,
-                     initializer_list<TOKEN_TYPE> types) {
+  Token match(initializer_list<TOKEN_TYPE> types = {}, bool peek = false) {
     if (cbegin == cend) {
-      return Token("", NONE);
+      return {};
     }
-    for (auto &type : types)
-      if (cbegin->type == type) {
-        return *(cbegin++);
+    auto consume = [&]() -> Token {
+      auto token = *cbegin;
+      if (!peek) {
+        ++cbegin;
       }
-    return Token("", NONE);
+      return token;
+    };
+    if (types.size() == 0) {
+      return consume();
+    }
+    for (auto &type : types) {
+      if (cbegin->type == type) {
+        return consume();
+      }
+    }
+    return {};
   }
 
-  static Result<StringLiteral *> string_literal(TokenIterator &cbegin,
-                                                const TokenIterator &cend) {
+  Token peek(initializer_list<TOKEN_TYPE> types = {}) {
+    return match(types, true);
+  }
+
+  void report_error(string expected) {
     if (cbegin == cend) {
-      return "Unexpected EoF";
+      _errors.push_back("Expected " + expected +
+                        ", but found an unexpected EoF");
+    } else {
+      _errors.push_back("Expected " + expected + ", but found \"" +
+                        cbegin->text + "\"");
     }
-    if (cbegin->type != STRING) {
-      return "Expected a string literal, but found \"" + cbegin->text + "\"";
-    }
-    return new StringLiteral((cbegin++)->text);
   }
 
-  static Result<Identifier *> identifier(TokenIterator &cbegin,
-                                         const TokenIterator &cend) {
-    if (cbegin == cend) {
-      return "Unexpected EoF";
+  StringLiteral *string_literal() {
+    Token str;
+    if ((str = match({STRING})) == NONE) {
+      report_error("a string literal");
+      return nullptr;
     }
-    if (cbegin->type != IDENT) {
-      return "Expected an identifier, but found \"" + cbegin->text + "\"";
-    }
-    return new Identifier((cbegin++)->text);
+    return new StringLiteral(str.text);
   }
 
-  static Result<DoubleLiteral *> double_literal(TokenIterator &cbegin,
-                                                const TokenIterator &cend) {
-    if (cbegin == cend) {
-      return "Unexpected EoF";
+  Identifier *identifier() {
+    Token ident;
+    if ((ident = match({IDENT})) == NONE) {
+      report_error("an identifier");
+      return nullptr;
     }
-    if (cbegin->type != NUMBER) {
-      return "Expected a number literal, but found \"" + cbegin->text + "\"";
-    }
-    return new DoubleLiteral(stod((cbegin++)->text));
+    return new Identifier(ident.text);
   }
 
-  static Result<Comparison *> comparison(TokenIterator &cbegin,
-                                         const TokenIterator &cend) {
-    Result<unique_ptr<MathNode>> first_expr;
-    extract_or_return(first_expr, expression(cbegin, cend));
+  DoubleLiteral *double_literal() {
+    Token num;
+    if ((num = match({NUMBER})) == NONE) {
+      report_error("a number literal");
+      return nullptr;
+    }
+    return new DoubleLiteral(stod(num.text));
+  }
+
+  Comparison *comparison() {
+    unique_ptr<MathNode> first_expr(expression());
+    return_if_error(first_expr);
     Token op;
-    if ((op = match(cbegin, cend, {EQEQ, NOTEQ, GT, GTEQ, LT, LTEQ})) == NONE) {
-      return "Expected a comparison operator, but found \"" + cbegin->text +
-             "\"";
+    if ((op = match({EQEQ, NOTEQ, GT, GTEQ, LT, LTEQ})) == NONE) {
+      report_error("a comparison operator");
+      return nullptr;
     }
-    Result<MathNode *> second_expr = expression(cbegin, cend);
+    MathNode *second_expr = expression();
     return_if_error(second_expr);
-    auto cmp =
-        make_unique<Comparison>(Ok(first_expr).release(), op, Ok(second_expr));
-    while ((op = match(cbegin, cend, {EQEQ, NOTEQ, GT, GTEQ, LT, LTEQ})) !=
-           NONE) {
-      Result<MathNode *> second_expr = expression(cbegin, cend);
+    auto cmp = make_unique<Comparison>(first_expr.release(), op, second_expr);
+    while ((op = match({EQEQ, NOTEQ, GT, GTEQ, LT, LTEQ})) != NONE) {
+      MathNode *second_expr = expression();
       return_if_error(second_expr);
-      cmp.reset(new Comparison(cmp.release(), op, Ok(second_expr)));
+      cmp.reset(new Comparison(cmp.release(), op, second_expr));
     }
     return cmp.release();
   }
 
-  static Result<MathNode *> expression(TokenIterator &cbegin,
-                                       const TokenIterator &cend) {
-    Result<unique_ptr<MathNode>> first_term;
-    extract_or_return(first_term, term(cbegin, cend));
+  MathNode *expression() {
+    unique_ptr<MathNode> first_term(term());
+    return_if_error(first_term);
     Token op;
-    while ((op = match(cbegin, cend, {PLUS, MINUS})) != NONE) {
-      Result<MathNode *> second_term = term(cbegin, cend);
+    while ((op = match({PLUS, MINUS})) != NONE) {
+      MathNode *second_term = term();
       return_if_error(second_term);
-      Ok(first_term)
-          .reset(new Expression(Ok(first_term).release(), op, Ok(second_term)));
+      first_term.reset(new Expression(first_term.release(), op, second_term));
     }
-    return Ok(first_term).release();
+    return first_term.release();
   }
 
-  static Result<MathNode *> term(TokenIterator &cbegin,
-                                 const TokenIterator &cend) {
-    Result<unique_ptr<MathNode>> first_unary;
-    extract_or_return(first_unary, unary(cbegin, cend));
+  MathNode *term() {
+    unique_ptr<MathNode> first_unary(unary());
+    return_if_error(first_unary);
     Token op;
-    while ((op = match(cbegin, cend, {ASTERISK, SLASH})) != NONE) {
-      Result<Unary *> second_unary = unary(cbegin, cend);
+    while ((op = match({ASTERISK, SLASH})) != NONE) {
+      Unary *second_unary = unary();
       return_if_error(second_unary);
-      Ok(first_unary)
-          .reset(new Term(Ok(first_unary).release(), op, Ok(second_unary)));
+      first_unary.reset(new Term(first_unary.release(), op, second_unary));
     }
-    return Ok(first_unary).release();
+    return first_unary.release();
   }
 
-  static Result<Unary *> unary(TokenIterator &cbegin,
-                               const TokenIterator &cend) {
-    Token sign = match(cbegin, cend, {PLUS, MINUS});
+  Unary *unary() {
+    Token sign = match({PLUS, MINUS});
     if (sign == NONE) {
       sign = Token("+", PLUS);
     }
-    Result<Primary *> num = primary(cbegin, cend);
+    Primary *num = primary();
     return_if_error(num);
-    return new Unary(sign, Ok(num));
+    return new Unary(sign, num);
   }
 
-  static Result<Primary *> primary(TokenIterator &cbegin,
-                                   const TokenIterator &cend) {
-    if (cbegin->type == IDENT) {
-      auto id = identifier(cbegin, cend);
-      return_if_error(id);
-      return Ok(id);
+  Primary *primary() {
+    switch (peek().type) {
+    case IDENT:
+      return identifier();
+    case NUMBER:
+      return double_literal();
+    default:
+      report_error("a primary");
     }
-    if (cbegin->type == NUMBER) {
-      auto num = double_literal(cbegin, cend);
-      return_if_error(num);
-      return Ok(num);
-    }
-    return "Unexpected primary: \"" + cbegin->text + "\"";
+    return nullptr;
   }
 
-  static Result<ASTNode *> print_statement(TokenIterator &cbegin,
-                                           const TokenIterator &cend) {
-    ASTNode *to_be_printed;
-    if (cbegin->type == STRING) {
-      auto str = string_literal(cbegin, cend);
-      return_if_error(str);
-      to_be_printed = Ok(str);
-    } else {
-      auto expr = expression(cbegin, cend);
-      return_if_error(expr);
-      to_be_printed = Ok(expr);
+  ASTNode *print_statement() {
+    ASTNode *to_be_printed = nullptr;
+    switch (peek().type) {
+    case STRING:
+      to_be_printed = string_literal();
+      break;
+    case NONE:
+      report_error("a string or an expression in a PRINT statement");
+      break;
+    default:
+      to_be_printed = expression();
     }
+    return_if_error(to_be_printed);
     return new Print(to_be_printed);
   }
 
-  static Result<ASTNode *> if_statement(TokenIterator &cbegin,
-                                        const TokenIterator &cend) {
-    Result<unique_ptr<Comparison>> cmp;
-    extract_or_return(cmp, comparison(cbegin, cend));
-    if (match(cbegin, cend, {THEN}) == NONE) {
-      return "Expected the keyword \"THEN\", but found \"" + cbegin->text +
-             "\"";
-    }
-    if (!consume(cbegin, cend, NEWLINE)) {
-      return "Expected EoL character, but found \"" + cbegin->text + "\"";
-    }
-    Result<unique_ptr<Block>> scope;
-    extract_or_return(scope, block(cbegin, cend));
-    if (match(cbegin, cend, {ENDIF}) == NONE) {
-      return "Expected the keyword \"ENDIF\", but found \"" + cbegin->text +
-             "\"";
-    }
-    if (!consume(cbegin, cend, NEWLINE)) {
-      return "Expected EoL character, but found \"" + cbegin->text + "\"";
-    }
-    return new If(Ok(cmp).release(), Ok(scope).release());
-  }
-
-  static Result<ASTNode *> while_statement(TokenIterator &cbegin,
-                                           const TokenIterator &cend) {
-    Result<unique_ptr<Comparison>> cmp;
-    extract_or_return(cmp, comparison(cbegin, cend));
-    if (match(cbegin, cend, {REPEAT}) == NONE) {
-      return "Expected the keyword \"REPEAT\", but found \"" + cbegin->text +
-             "\"";
-    }
-    if (!consume(cbegin, cend, NEWLINE)) {
-      return "Expected EoL character, but found \"" + cbegin->text + "\"";
-    }
-    Result<unique_ptr<Block>> scope;
-    extract_or_return(scope, block(cbegin, cend));
-    if (match(cbegin, cend, {ENDWHILE}) == NONE) {
-      return "Expected the keyword \"ENDWHILE\", but found \"" + cbegin->text +
-             "\"";
-    }
-    if (!consume(cbegin, cend, NEWLINE)) {
-      return "Expected EoL character, but found \"" + cbegin->text + "\"";
-    }
-    return new While(Ok(cmp).release(), Ok(scope).release());
-  }
-
-  static Result<ASTNode *> label_statement(TokenIterator &cbegin,
-                                           const TokenIterator &cend) {
-    Result<unique_ptr<Identifier>> ident;
-    extract_or_return(ident, identifier(cbegin, cend));
-    if (!consume(cbegin, cend, NEWLINE)) {
-      return "Expected EoL character, but found \"" + cbegin->text + "\"";
-    }
-    return new Label(Ok(ident).release());
-  }
-
-  static Result<ASTNode *> goto_statement(TokenIterator &cbegin,
-                                          const TokenIterator &cend) {
-    Result<unique_ptr<Identifier>> ident;
-    extract_or_return(ident, identifier(cbegin, cend));
-    if (!consume(cbegin, cend, NEWLINE)) {
-      return "Expected EoL character, but found \"" + cbegin->text + "\"";
-    }
-    return new Goto(Ok(ident).release());
-  }
-
-  static Result<ASTNode *> let_statement(TokenIterator &cbegin,
-                                         const TokenIterator &cend) {
-    Result<unique_ptr<Identifier>> ident;
-    extract_or_return(ident, identifier(cbegin, cend));
-    if (match(cbegin, cend, {EQ}) == NONE) {
-      return "A LET statement must contain '=' after the identifier, but "
-             "found \"" +
-             cbegin->text + "\"";
-    }
-    Result<unique_ptr<MathNode>> expr;
-    extract_or_return(expr, expression(cbegin, cend));
-    if (!consume(cbegin, cend, NEWLINE)) {
-      return "Expected EoL character, but found \"" + cbegin->text + "\"";
-    }
-    return new Let(Ok(ident).release(), Ok(expr).release());
-  }
-
-  static Result<ASTNode *> input_statement(TokenIterator &cbegin,
-                                           const TokenIterator &cend) {
-    Result<unique_ptr<Identifier>> ident;
-    extract_or_return(ident, identifier(cbegin, cend));
-    if (!consume(cbegin, cend, NEWLINE)) {
-      return "Expected EoL character, but found \"" + cbegin->text + "\"";
-    }
-    return new Input(get<1>(ident).release());
-  }
-
-  static Result<ASTNode *> statement(TokenIterator &cbegin,
-                                     const TokenIterator &cend) {
-    static unordered_map<
-        TOKEN_TYPE,
-        function<Result<ASTNode *>(TokenIterator &, const TokenIterator &)>>
-        statement_functions{{PRINT, print_statement}, {IF, if_statement},
-                            {WHILE, while_statement}, {LABEL, label_statement},
-                            {GOTO, goto_statement},   {LET, let_statement},
-                            {INPUT, input_statement}};
-    consume(cbegin, cend, NEWLINE);
-    if (cbegin == cend) {
+  ASTNode *if_statement() {
+    unique_ptr<Comparison> cmp(comparison());
+    return_if_error(cmp);
+    if (match({THEN}) == NONE) {
+      report_error("the keyword \"THEN\"");
       return nullptr;
     }
-    auto statment_parser = statement_functions.find(cbegin->type);
+    if (!consume(NEWLINE)) {
+      report_error("an EoL character");
+      return nullptr;
+    }
+    unique_ptr<Block> scope(block());
+    return_if_error(scope);
+    if (match({ENDIF}) == NONE) {
+      report_error("the keyword \"ENDIF\"");
+      return nullptr;
+    }
+    if (!consume(NEWLINE)) {
+      report_error("an EoL character");
+      return nullptr;
+    }
+    return new If(cmp.release(), scope.release());
+  }
+
+  ASTNode *while_statement() {
+    unique_ptr<Comparison> cmp(comparison());
+    return_if_error(cmp);
+    if (match({REPEAT}) == NONE) {
+      report_error("the keyword \"REPEAT\"");
+      return nullptr;
+    }
+    if (!consume(NEWLINE)) {
+      report_error("an EoL character");
+      return nullptr;
+    }
+    unique_ptr<Block> scope(block());
+    return_if_error(scope);
+    if (match({ENDWHILE}) == NONE) {
+      report_error("the keyword \"ENDWHILE\"");
+      return nullptr;
+    }
+    if (!consume(NEWLINE)) {
+      report_error("an EoL character");
+      return nullptr;
+    }
+    return new While(cmp.release(), scope.release());
+  }
+
+  ASTNode *label_statement() {
+    unique_ptr<Identifier> ident(identifier());
+    return_if_error(ident);
+    if (!consume(NEWLINE)) {
+      report_error("an EoL character");
+      return nullptr;
+    }
+    return new Label(ident.release());
+  }
+
+  ASTNode *goto_statement() {
+    unique_ptr<Identifier> ident(identifier());
+    return_if_error(ident);
+    if (!consume(NEWLINE)) {
+      report_error("an EoL character");
+      return nullptr;
+    }
+    return new Goto(ident.release());
+  }
+
+  ASTNode *let_statement() {
+    unique_ptr<Identifier> ident(identifier());
+    return_if_error(ident);
+    if (match({EQ}) == NONE) {
+      report_error("an '=' operator in a LET statement");
+      return nullptr;
+    }
+    unique_ptr<MathNode> expr(expression());
+    return_if_error(expr);
+    if (!consume(NEWLINE)) {
+      report_error("an EoL character");
+      return nullptr;
+    }
+    return new Let(ident.release(), expr.release());
+  }
+
+  ASTNode *input_statement() {
+    unique_ptr<Identifier> ident(identifier());
+    return_if_error(ident);
+    if (!consume(NEWLINE)) {
+      report_error("an EoL character");
+      return nullptr;
+    }
+    return new Input(ident.release());
+  }
+
+  variant<bool, ASTNode *> statement() {
+    static const unordered_map<TOKEN_TYPE,
+                               ASTNode *(Parser<TokenIterator>::*)()>
+        statement_functions{{PRINT, &Parser<TokenIterator>::print_statement},
+                            {IF, &Parser<TokenIterator>::if_statement},
+                            {WHILE, &Parser<TokenIterator>::while_statement},
+                            {LABEL, &Parser<TokenIterator>::label_statement},
+                            {GOTO, &Parser<TokenIterator>::goto_statement},
+                            {LET, &Parser<TokenIterator>::let_statement},
+                            {INPUT, &Parser<TokenIterator>::input_statement}};
+    consume(NEWLINE);
+    auto statment_parser = statement_functions.find(peek().type);
     if (statment_parser == statement_functions.cend()) {
-      return nullptr;
+      return true;
     }
-    return statment_parser->second(++cbegin, cend);
+    match();
+    return (this->*(statment_parser->second))();
   }
 
-  static Result<Block *> block(TokenIterator &cbegin,
-                               const TokenIterator &cend) {
-    vector<unique_ptr<ASTNode>> statements;
-    do {
-      Result<unique_ptr<ASTNode>> stmt;
-      extract_or_return(stmt, statement(cbegin, cend));
-      statements.emplace_back(std::move(Ok(stmt)));
-    } while (cbegin != cend && statements.back() != nullptr);
-    if (statements.back() == nullptr) {
-      statements.pop_back();
+  Block *block() {
+    vector<ASTNode *> statements;
+    while (true) {
+      auto result = statement();
+      // A statement was skipped
+      if (!result.index()) {
+        break;
+      }
+      // Extract the parsed statement
+      unique_ptr<ASTNode> stmt(get<1>(result));
+      if (stmt != nullptr) {
+        statements.push_back(stmt.release());
+        continue;
+      }
+      // Skip the rest of the line and find more errors
+      while (true) {
+        auto token = peek();
+        if (token == NONE || token == _EOF || token == NEWLINE) {
+          break;
+        }
+        match();
+      }
     }
-    vector<ASTNode *> pure_statements;
-    pure_statements.reserve(statements.size());
-    for (auto &statement : statements) {
-      pure_statements.push_back(statement.release());
-    }
-    return new Block(std::move(pure_statements));
+    return new Block(std::move(statements));
   }
+#undef return_if_error
+
+  TokenIterator cbegin;
+  TokenIterator cend;
+  vector<string> _errors;
 };
 
 template <typename TokenIterator>
-Result<unique_ptr<ASTNode>> parse(TokenIterator cbegin, TokenIterator cend) {
-  Result<unique_ptr<ASTNode>> program_tree;
-  extract_or_return(program_tree, Parser<TokenIterator>::block(cbegin, cend));
-  if (Parser<TokenIterator>::match(cbegin, cend, {_EOF}) == NONE) {
-    return "Error: Parser stopped before EoF";
+variant<vector<string>, unique_ptr<ASTNode>> parse(TokenIterator cbegin,
+                                                   TokenIterator cend) {
+  Parser<TokenIterator> parser;
+  unique_ptr<ASTNode> program_tree(parser.program(cbegin, cend));
+  if (program_tree == nullptr) {
+    return parser.errors();
   }
   return program_tree;
 }
 
-#undef Ok
-#undef Error
-#undef extract_or_return
-#undef return_if_error
 } // namespace Parser
