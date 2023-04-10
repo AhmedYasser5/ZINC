@@ -20,11 +20,11 @@ using std::vector;
 
 template <typename TokenIterator> class Parser {
 public:
-  unique_ptr<ASTNode> program(TokenIterator cbegin, TokenIterator cend) {
+  unique_ptr<Block> program(TokenIterator cbegin, TokenIterator cend) {
     this->cbegin = cbegin;
     this->cend = cend;
     _errors.clear();
-    unique_ptr<ASTNode> program_tree(block());
+    unique_ptr<Block> program_tree(block());
     if (match({_EOF}) == NONE) {
       report_error("an EoF");
     }
@@ -343,10 +343,10 @@ private:
 };
 
 template <typename TokenIterator>
-variant<vector<string>, unique_ptr<ASTNode>> parse(TokenIterator cbegin,
-                                                   TokenIterator cend) {
+variant<vector<string>, unique_ptr<Block>> parse(TokenIterator cbegin,
+                                                 TokenIterator cend) {
   Parser<TokenIterator> parser;
-  unique_ptr<ASTNode> program_tree(parser.program(cbegin, cend));
+  unique_ptr<Block> program_tree(parser.program(cbegin, cend));
   if (program_tree == nullptr) {
     return parser.errors();
   }
