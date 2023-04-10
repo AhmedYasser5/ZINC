@@ -34,7 +34,7 @@ public:
 
   void accept(Visitor *visitor) override;
 
-  std::vector<ASTNode *> statements() const { return _statements; }
+  const std::vector<ASTNode *> &statements() const { return _statements; }
 };
 
 class Unary : public MathNode {
@@ -163,7 +163,7 @@ public:
 
   void accept(Visitor *visitor) override;
 
-  std::string str() const { return _str; }
+  const std::string &str() const { return _str; }
 };
 
 class Identifier : public Primary {
@@ -175,7 +175,7 @@ public:
 
   void accept(Visitor *visitor) override;
 
-  std::string ident() const { return _ident; }
+  const std::string &ident() const { return _ident; }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
