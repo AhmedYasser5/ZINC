@@ -3,6 +3,7 @@
 #include "lexer.hpp"
 #include <memory>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <variant>
 #include <vector>
@@ -13,6 +14,7 @@ using std::get;
 using std::initializer_list;
 using std::make_unique;
 using std::string;
+using std::string_view;
 using std::unique_ptr;
 using std::unordered_map;
 using std::variant;
@@ -79,13 +81,14 @@ private:
     return match(types, true);
   }
 
-  void report_error(string expected) {
+  void report_error(string_view expected) {
+    _errors.push_back("Expected ");
+    _errors.back() += expected;
+    _errors.back() += ", but found ";
     if (cbegin == cend) {
-      _errors.push_back("Expected " + expected +
-                        ", but found an unexpected EoF");
+      _errors.back() += "an unexpected EoF";
     } else {
-      _errors.push_back("Expected " + expected + ", but found \"" +
-                        cbegin->text + "\"");
+      _errors.back() += "\"" + cbegin->text + "\"";
     }
   }
 
