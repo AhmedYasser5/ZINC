@@ -43,6 +43,14 @@ if (( o == 1 )); then
 	exit
 fi
 filename=$(make RELEASE=$r getTarget)
-echo --------------------------------------------------
+echo ------------------------------------------------------------
 command time -f "\n--------------------------------------------------\n\
 Elapsed Time: %e sec\nCPU Percentage: %P" "$filename" "$@"
+echo ------------------------------------------------------------
+command clang-format -i out.cpp
+command g++ out.cpp -o output
+echo -e "C++ Source:\n"
+command cat out.cpp
+echo ------------------------------------------------------------
+echo "Running program:"
+command ./output
