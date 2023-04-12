@@ -1,6 +1,7 @@
 #pragma once
 #include "keywords.hpp"
 #include "lexer.hpp"
+#include <iostream>
 #include <memory>
 #include <stack>
 #include <string>
@@ -228,7 +229,10 @@ private:
     default:
       to_be_printed = expression();
     }
-    consume_till(NEWLINE);
+    if (!consume_till(NEWLINE)) {
+      report_error("an EoL character");
+      return nullptr;
+    }
     return_if_error(to_be_printed);
     return new Print(to_be_printed);
   }
@@ -283,23 +287,23 @@ private:
 
   ASTNode *label_statement() {
     unique_ptr<Identifier> ident(identifier());
-    labels.insert(ident->ident());
     if (!consume_till(NEWLINE)) {
       report_error("an EoL character");
       return nullptr;
     }
     return_if_error(ident);
+    labels.insert(ident->ident());
     return new Label(ident.release());
   }
 
   ASTNode *goto_statement() {
     unique_ptr<Identifier> ident(identifier());
-    gotoed.insert(ident->ident());
     if (!consume_till(NEWLINE)) {
       report_error("an EoL character");
       return nullptr;
     }
     return_if_error(ident);
+    gotoed.insert(ident->ident());
     return new Goto(ident.release());
   }
 
