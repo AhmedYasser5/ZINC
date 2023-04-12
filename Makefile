@@ -50,6 +50,10 @@ LINK = echo LD $(maketype) $(1) $(2) && \
 
 TARGET := $(TARGETDIR)/$(maketype)/$(notdir $(subst $(space),_,$(realpath .)))
 
+% : %.cpp
+	@$(call LINK,$@,$@,$^)
+	@rm $@.d
+
 .PHONY: all
 all : $(TARGET)
 

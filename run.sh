@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/env bash
 set -e
 c=0; d=0; r=0; o=0
 while (( $# > 0 )) && [ "${1:0:1}" == "-" ]
@@ -46,11 +46,12 @@ filename=$(make RELEASE=$r getTarget)
 echo ------------------------------------------------------------
 command time -f "\n--------------------------------------------------\n\
 Elapsed Time: %e sec\nCPU Percentage: %P" "$filename" "$@"
+cpp_file="${1::-4}cpp"
+clang-format -i "$cpp_file"
+output_program="${cpp_file::-4}"
+make "$output_program"
 echo ------------------------------------------------------------
-command clang-format -i out.cpp
-command g++ out.cpp -o output
-echo -e "C++ Source:\n"
-command cat out.cpp
+cat "$cpp_file"
 echo ------------------------------------------------------------
-echo "Running program:"
-command ./output
+echo "Running your program:"
+"./$output_program"
