@@ -37,6 +37,7 @@ class Token{
 public:
     TOKEN_TYPE type ;
     std::string text ;
+	int line ;
     Token(std::string Text,TOKEN_TYPE T);
 	Token();
 	void stringToType(std::string s);
@@ -46,6 +47,7 @@ public:
     std::string source ;
     char curChar;
     int curPos;
+	int curLine;
     Lexer(std::string s);
     void nextChar();
     char Peek();

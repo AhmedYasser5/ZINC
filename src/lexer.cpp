@@ -1,7 +1,6 @@
 #include <string.h>
 #include <iostream>
 #include "../include/lexer.h"
-
 Token::Token(std::string Text,TOKEN_TYPE T){
     text = Text ;
     type = T ;
@@ -9,12 +8,14 @@ Token::Token(std::string Text,TOKEN_TYPE T){
 Token::Token(){
     text = " ";
     type = NONE; 
+    line = 0 ;
 }
 Lexer::Lexer(std::string s)
 {
-    source = s + '\n';
+    source = s ;
     curChar = ' ';
     curPos = -1 ;
+    curLine = 1 ;
     nextChar();
 }
 void Token::stringToType(std::string s){
@@ -85,6 +86,7 @@ void Token::stringToType(std::string s){
     Token Lexer::getToken()
     {
         Token token ;
+        token.line = curLine;
         int startPos;
         skipWhitespace();
         skipComment();
@@ -168,6 +170,7 @@ void Token::stringToType(std::string s){
         else if (curChar =='\n'){
             token.type = NEWLINE;
             token.text = curChar;
+            curLine++;
             }
         else if (curChar =='\0'){
             token.type = _EOF;
@@ -196,7 +199,6 @@ void Token::stringToType(std::string s){
         }
         else
             abort("unidentified Token" + curChar);
-
         nextChar();
         return token;
     }
@@ -209,7 +211,8 @@ void Token::stringToType(std::string s){
             nextChar();
     }
 	void Lexer::skipComment(){
-         if (curChar == '#')
+         if (curChar == '#'){
             while (curChar != '\n')
-                nextChar();
+                nextChar(); 
+         }
     }

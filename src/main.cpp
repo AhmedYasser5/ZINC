@@ -38,7 +38,7 @@ a = "NUMBER";
 else if (s ==STRING)
 a = "STRING";
 else if (s ==EQ)
-a = "EQ";
+a = "EQUAL";
 else if (s ==PLUS)
 a = "PLUS";
 else if (s ==MINUS)
@@ -48,9 +48,9 @@ a = "ASTERISK";
 else if (s ==SLASH)
 a = "SLASH";
 else if (s ==EQEQ )
-a = "EQEQ";
+a = "EQUAL EQUAL";
 else if (s ==NOTEQ)
-a = "NOTEQ";
+a = "NOT EQUAL";
 else if (s ==LT )
 a = "LESS THAT";
 else if (s ==LTEQ)
@@ -65,15 +65,16 @@ return a ;
 }
 void Test(){
   fstream file ;
-  string str ;
+  string program,temp;
   file.open("./src/test.txt",ios::in);
-  while (!file.eof()){
-  getline(file,str);
-  Lexer l (str);
-  while (l.curChar != '\0'){
-    Token t = l.getToken();
-    cout<<t.text<<" -- "<< typeToString(t.type) <<endl;
+  while (getline(file,temp)){
+    program = program + temp + '\n';
   }
+  Lexer l (program);
+  while (l.curChar != '\0'){
+    cout<<"Line "<<l.curLine<<endl;
+    Token t = l.getToken();
+    cout<<t.text<<"   "<< typeToString(t.type) << " At Line : "<<t.line<<endl;
   }
   file.close();
 }
