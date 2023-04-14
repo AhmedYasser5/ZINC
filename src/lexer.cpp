@@ -22,7 +22,7 @@ void Token::stringToType(std::string s){
         text = s ;
         type = LABEL;
         }
-        else if(s== "GOTO "){
+        else if(s== "GOTO"){
         text = s ;
         type = GOTO;
         }
@@ -30,7 +30,7 @@ void Token::stringToType(std::string s){
         text = s ;
         type = INPUT ; 
         }
-        else if(s== "LET" ){
+        else if(s== "LET"){
         text = s ;
         type = LET;
         }

@@ -3,14 +3,11 @@
 #include <string.h>
 #include <fstream>
 using namespace std;
-void Test(string filepath){
-  cout<<"Test for  "<<filepath<<endl;
-  cout<<"**************************************************"<<endl;
+void Test(){
   fstream file ;
   string str ;
-  file.open(filepath);
-  if (file.is_open()){
-  while (file){
+  file.open("./src/test.txt",ios::in);
+  while (!file.eof()){
   getline(file,str);
   Lexer l (str);
   while (l.curChar != '\0'){
@@ -19,16 +16,8 @@ void Test(string filepath){
   }
   }
   file.close();
-  }
 }
 int main(int argc, char **argv) {
-  /*
-  if (argc < 2) {
-    cout << "Wrong number of arguments\n";
-    cout << "Usage: " << argv[0] << " <filename>\n";
-    return 1;
-  }
-  */
-  Test("./src/test.txt");
+    Test();
     return 0;
 }
