@@ -35,7 +35,7 @@ enum TOKEN_TYPE {
 
 class Token{
 public:
-    int type ;
+    TOKEN_TYPE type ;
     std::string text ;
     Token(std::string Text,TOKEN_TYPE T);
 	Token();

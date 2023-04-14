@@ -1,2 +1,6 @@
 GOTO A 
 LABEL A 
+LET A 
+1 + 2 + 3 + 4
+1.12345 / 2.3456
+IF 3>5 THEN
