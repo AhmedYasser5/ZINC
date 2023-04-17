@@ -19,6 +19,8 @@ enum TOKEN_TYPE {
 	,WHILE = 109
 	,REPEAT = 110
 	,ENDWHILE = 111
+	,ELSEIF = 112
+	,ELSE = 113
 	// Operators.
 	,EQ = 201
 	,PLUS = 202

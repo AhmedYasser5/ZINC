@@ -65,6 +65,14 @@ void Token::stringToType(std::string s){
             text =s ; 
             type = PRINT;
         }
+        else if (s == "ELSEIF"){
+        text = s ;
+        type = ELSEIF;
+        }
+        else if (s == "ELSE"){
+        text = s ;
+        type = ELSE;
+        }
         else{
         text = s ;
         type = IDENT; 

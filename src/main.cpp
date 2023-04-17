@@ -59,6 +59,10 @@ else if (s ==GT)
 a = "GREATER THAN";
 else if (s ==GTEQ)
 a = "GREATER THAN EQUAL";
+else if (s == ELSEIF)
+a = "ELSE IF";
+else if (s==ELSE)
+a = "ELSE";
 else
 a = "IDENT";
 return a ;
