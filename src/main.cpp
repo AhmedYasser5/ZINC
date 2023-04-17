@@ -79,6 +79,12 @@ void Test(){
   file.close();
 }
 int main(int argc, char **argv) {
+  try{
     Test();
+  }
+  catch(int &e){
+    cout<<"Program terminated due to Error..."<<endl;
+    return 1 ;
+  }
     return 0;
 }

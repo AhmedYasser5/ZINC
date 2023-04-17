@@ -52,7 +52,6 @@ public:
     void nextChar();
     char Peek();
     Token getToken();
-	int abort(std::string message);
 	void skipWhitespace();
 	void skipComment();
 };

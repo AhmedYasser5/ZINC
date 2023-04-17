@@ -1,5 +1,1 @@
-PRINT "HELLO THERE :D"
-#comment 
-PRINT "another message"
-1 + 2 + 3 + 4 + 5
-1.111 / 2.334342
+PRINT "Hello %"
