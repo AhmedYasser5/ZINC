@@ -26,3 +26,10 @@ public:
   // A pure virtual function to accept a visitor
   virtual void accept(class Visitor *visitor) = 0;
 };
+
+class Subif : public ASTNode {
+public:
+  virtual ~Subif() {}
+
+  virtual void accept(class Visitor *visitor) = 0;
+};

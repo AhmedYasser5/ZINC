@@ -24,6 +24,10 @@ void Input::accept(Visitor *visitor) { visitor->visit(this); }
 
 void If::accept(Visitor *visitor) { visitor->visit(this); }
 
+void Elseif::accept(Visitor *visitor) { visitor->visit(this); }
+
+void Else::accept(Visitor *visitor) { visitor->visit(this); }
+
 void While::accept(Visitor *visitor) { visitor->visit(this); }
 
 void Goto::accept(Visitor *visitor) { visitor->visit(this); }
