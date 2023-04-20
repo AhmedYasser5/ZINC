@@ -248,6 +248,8 @@ private:
       return nullptr;
     }
     unique_ptr<Block> scope(block());
+		unique_ptr<Subif> elses;
+		while()
     if (!consume_till(ENDIF)) {
       report_error("the keyword \"ENDIF\"");
       return nullptr;
@@ -258,7 +260,8 @@ private:
     }
     return_if_error(cmp);
     return_if_error(scope);
-    return new If(cmp.release(), scope.release());
+		return_if_error(elses);
+    return new If(cmp.release(), scope.release(), elses.release());
   }
 
   ASTNode *while_statement() {

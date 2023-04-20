@@ -1,6 +1,9 @@
 #include "lexer.hpp"
 #include <iostream>
-#include <string.h>
+#include <string>
+
+bool Token::operator==(TOKEN_TYPE type) const { return this->type == type; }
+bool Token::operator!=(TOKEN_TYPE type) const { return !(*this == type); }
 
 Token::Token(std::string Text, TOKEN_TYPE T) {
   text = Text;
@@ -9,20 +12,21 @@ Token::Token(std::string Text, TOKEN_TYPE T) {
 Token::Token() {
   text = " ";
   type = NONE;
+  line = 0;
 }
-bool Token::operator==(TOKEN_TYPE type) const { return this->type == type; }
-bool Token::operator!=(TOKEN_TYPE type) const { return !(*this == type); }
 Lexer::Lexer(std::string s) {
-  source = s + '\n';
+  source = s;
   curChar = ' ';
   curPos = -1;
+  curLine = 1;
   nextChar();
 }
 void Token::stringToType(std::string s) {
+
   if (s == "LABEL") {
     text = s;
     type = LABEL;
-  } else if (s == "GOTO ") {
+  } else if (s == "GOTO") {
     text = s;
     type = GOTO;
   } else if (s == "INPUT") {
@@ -52,6 +56,12 @@ void Token::stringToType(std::string s) {
   } else if (s == "PRINT") {
     text = s;
     type = PRINT;
+  } else if (s == "ELSEIF") {
+    text = s;
+    type = ELSEIF;
+  } else if (s == "ELSE") {
+    text = s;
+    type = ELSE;
   } else {
     text = s;
     type = IDENT;
@@ -59,19 +69,21 @@ void Token::stringToType(std::string s) {
 }
 void Lexer::nextChar() {
   curPos += 1;
-  if (curPos >= source.size())
+  if (curPos >= int(source.size()))
     curChar = '\0'; // EOF - End of file
   else
     curChar = source[curPos];
 }
 char Lexer::Peek() {
-  if (curPos + 1 >= source.size())
+  if (curPos + 1 >= int(source.size()))
     return '\0';
   else
     return source[curPos + 1];
 }
 Token Lexer::getToken() {
+
   Token token;
+  token.line = curLine;
   int startPos;
   skipWhitespace();
   skipComment();
@@ -120,7 +132,9 @@ Token Lexer::getToken() {
       token.type = NOTEQ;
       nextChar();
     } else {
-      std::cerr << "Illegal token";
+      std::cout << "Error at line " << curLine << std::endl;
+      std::cout << "Illegal Token" << std::endl;
+      throw 3;
     }
   }
 
@@ -132,7 +146,10 @@ Token Lexer::getToken() {
     if (Peek() == '.') {
       nextChar();
       if (!isdigit(Peek())) {
-        abort("Must at least have one number after decimal point");
+        std::cout << "Error at line " << curLine << std::endl;
+        std::cout << "Must at least have one number after decimal point"
+                  << std::endl;
+        throw 3;
       }
       while (isdigit(Peek())) {
         nextChar();
@@ -143,6 +160,7 @@ Token Lexer::getToken() {
   } else if (curChar == '\n') {
     token.type = NEWLINE;
     token.text = curChar;
+    curLine++;
   } else if (curChar == '\0') {
     token.type = _EOF;
     token.text = curChar;
@@ -154,8 +172,11 @@ Token Lexer::getToken() {
     startPos = curPos;
     while (curChar != '\"') {
       if (curChar == '\r' || curChar == '\n' || curChar == '\t' ||
-          curChar == '\\' || curChar == '%')
-        abort("Illegal character in string.");
+          curChar == '\\' || curChar == '%') {
+        std::cout << "Error at line " << curLine << std::endl;
+        std::cout << "Illegal character in string" << std::endl;
+        throw 3;
+      }
       nextChar();
     }
     token.type = STRING;
@@ -167,22 +188,21 @@ Token Lexer::getToken() {
     }
     token.text = source.substr(startPos, curPos - startPos + 1);
     token.stringToType(token.text);
-  } else
-    abort("unidentified Token" + curChar);
-
+  } else {
+    std::cout << "Error at line " << curLine << std::endl;
+    std::cout << "unidentified Token " << curChar << std::endl;
+    throw 3;
+  }
   nextChar();
   return token;
-}
-int Lexer::abort(std::string message) {
-  std::cerr << message << std::endl;
-  return -1;
 }
 void Lexer::skipWhitespace() {
   while (curChar == ' ' || curChar == '\r' || curChar == '\t')
     nextChar();
 }
 void Lexer::skipComment() {
-  if (curChar == '#')
+  if (curChar == '#') {
     while (curChar != '\n')
       nextChar();
+  }
 }
