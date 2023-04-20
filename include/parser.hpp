@@ -1,8 +1,10 @@
 #pragma once
+
 #include "keywords.hpp"
 #include "lexer.hpp"
 #include <iostream>
 #include <memory>
+#include <queue>
 #include <stack>
 #include <string>
 #include <string_view>
@@ -16,6 +18,7 @@ namespace Parser {
 using std::get;
 using std::initializer_list;
 using std::make_unique;
+using std::queue;
 using std::stack;
 using std::string;
 using std::string_view;
@@ -238,18 +241,33 @@ private:
   }
 
   ASTNode *if_statement() {
-    unique_ptr<Comparison> cmp(comparison());
-    if (!consume_till(THEN)) {
-      report_error("the keyword \"THEN\"");
-      return nullptr;
+    queue<unique_ptr<Subif>> ifelses;
+    do {
+      unique_ptr<Comparison> cmp(comparison());
+      if (!consume_till(THEN)) {
+        report_error("the keyword \"THEN\"");
+        return nullptr;
+      }
+      if (!consume(NEWLINE)) {
+        report_error("an EoL character");
+        return nullptr;
+      }
+      unique_ptr<Block> scope(block());
+      if (cmp == nullptr || scope == nullptr) {
+        ifelses.emplace(nullptr);
+      } else if (ifelses.empty()) {
+        ifelses.emplace(new If(cmp.release(), scope.release()));
+      } else {
+        ifelses.emplace(new Elseif(cmp.release(), scope.release()));
+      }
+    } while (match({ELSEIF}) != NONE);
+    if (match({ELSE}) != NONE) {
+      if (!consume(NEWLINE)) {
+        report_error("an EoL character");
+        return nullptr;
+      }
+      ifelses.emplace(new Else(block()));
     }
-    if (!consume(NEWLINE)) {
-      report_error("an EoL character");
-      return nullptr;
-    }
-    unique_ptr<Block> scope(block());
-		unique_ptr<Subif> elses;
-		while()
     if (!consume_till(ENDIF)) {
       report_error("the keyword \"ENDIF\"");
       return nullptr;
@@ -258,10 +276,17 @@ private:
       report_error("an EoL character");
       return nullptr;
     }
-    return_if_error(cmp);
-    return_if_error(scope);
-		return_if_error(elses);
-    return new If(cmp.release(), scope.release(), elses.release());
+    return_if_error(ifelses.front());
+    unique_ptr<If> whole_if(static_cast<If *>(ifelses.front().release()));
+    ifelses.pop();
+    Subif *last = whole_if.get();
+    while (!ifelses.empty()) {
+      return_if_error(ifelses.front());
+      last->next(ifelses.front().release());
+      ifelses.pop();
+      last = last->next();
+    }
+    return whole_if.release();
   }
 
   ASTNode *while_statement() {
