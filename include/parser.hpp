@@ -1,10 +1,13 @@
 #pragma once
 #include "keywords.hpp"
 #include "lexer.hpp"
+#include <iostream>
 #include <memory>
+#include <stack>
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <unordered_set>
 #include <variant>
 #include <vector>
 
@@ -13,10 +16,12 @@ namespace Parser {
 using std::get;
 using std::initializer_list;
 using std::make_unique;
+using std::stack;
 using std::string;
 using std::string_view;
 using std::unique_ptr;
 using std::unordered_map;
+using std::unordered_set;
 using std::variant;
 using std::vector;
 
@@ -26,9 +31,18 @@ public:
     this->cbegin = cbegin;
     this->cend = cend;
     _errors.clear();
+    labels.clear();
+    gotoed.clear();
     unique_ptr<Block> program_tree(block());
     if (match({_EOF}) == NONE) {
       report_error("an EoF");
+    }
+    for (auto &gotoed : gotoed) {
+      if (labels.find(gotoed) == labels.end()) {
+        _errors.push_back("Label \"");
+        _errors.back() += gotoed;
+        _errors.back() += "\" was used without being declared";
+      }
     }
     if (!_errors.empty()) {
       return nullptr;
@@ -53,6 +67,17 @@ private:
     while (match({type}) != NONE)
       ;
     return true;
+  }
+
+  bool consume_till(TOKEN_TYPE type, bool included = true) {
+    while (true) {
+      auto token = peek();
+      if (token == NONE || token == _EOF || token == type) {
+        break;
+      }
+      match();
+    }
+    return (included ? match({type}) : peek({type})) == type;
   }
 
   Token match(initializer_list<TOKEN_TYPE> types = {}, bool peek = false) {
@@ -175,13 +200,21 @@ private:
   Primary *primary() {
     switch (peek().type) {
     case IDENT:
-      return identifier();
+      break;
     case NUMBER:
       return double_literal();
     default:
       report_error("a primary");
+      return nullptr;
     }
-    return nullptr;
+    unique_ptr<Identifier> ident(identifier());
+    if (variables.find(ident->ident()) == variables.end()) {
+      _errors.push_back("Variable \"");
+      _errors.back() += ident->ident();
+      _errors.back() += "\" used without being defined";
+      return nullptr;
+    }
+    return ident.release();
   }
 
   ASTNode *print_statement() {
@@ -196,14 +229,17 @@ private:
     default:
       to_be_printed = expression();
     }
+    if (!consume_till(NEWLINE)) {
+      report_error("an EoL character");
+      return nullptr;
+    }
     return_if_error(to_be_printed);
     return new Print(to_be_printed);
   }
 
   ASTNode *if_statement() {
     unique_ptr<Comparison> cmp(comparison());
-    return_if_error(cmp);
-    if (match({THEN}) == NONE) {
+    if (!consume_till(THEN)) {
       report_error("the keyword \"THEN\"");
       return nullptr;
     }
@@ -212,8 +248,7 @@ private:
       return nullptr;
     }
     unique_ptr<Block> scope(block());
-    return_if_error(scope);
-    if (match({ENDIF}) == NONE) {
+    if (!consume_till(ENDIF)) {
       report_error("the keyword \"ENDIF\"");
       return nullptr;
     }
@@ -221,13 +256,14 @@ private:
       report_error("an EoL character");
       return nullptr;
     }
+    return_if_error(cmp);
+    return_if_error(scope);
     return new If(cmp.release(), scope.release());
   }
 
   ASTNode *while_statement() {
     unique_ptr<Comparison> cmp(comparison());
-    return_if_error(cmp);
-    if (match({REPEAT}) == NONE) {
+    if (!consume_till(REPEAT)) {
       report_error("the keyword \"REPEAT\"");
       return nullptr;
     }
@@ -236,8 +272,7 @@ private:
       return nullptr;
     }
     unique_ptr<Block> scope(block());
-    return_if_error(scope);
-    if (match({ENDWHILE}) == NONE) {
+    if (!consume_till(ENDWHILE)) {
       report_error("the keyword \"ENDWHILE\"");
       return nullptr;
     }
@@ -245,52 +280,65 @@ private:
       report_error("an EoL character");
       return nullptr;
     }
+    return_if_error(cmp);
+    return_if_error(scope);
     return new While(cmp.release(), scope.release());
   }
 
   ASTNode *label_statement() {
     unique_ptr<Identifier> ident(identifier());
-    return_if_error(ident);
-    if (!consume(NEWLINE)) {
+    if (!consume_till(NEWLINE)) {
       report_error("an EoL character");
       return nullptr;
     }
+    return_if_error(ident);
+    labels.insert(ident->ident());
     return new Label(ident.release());
   }
 
   ASTNode *goto_statement() {
     unique_ptr<Identifier> ident(identifier());
-    return_if_error(ident);
-    if (!consume(NEWLINE)) {
+    if (!consume_till(NEWLINE)) {
       report_error("an EoL character");
       return nullptr;
     }
+    return_if_error(ident);
+    gotoed.insert(ident->ident());
     return new Goto(ident.release());
+  }
+
+  void create_variable(const string &variable) {
+    if (variables.find(variable) == variables.end()) {
+      variables.insert(variable);
+      scoped_variables.top().push_back(variable);
+    }
   }
 
   ASTNode *let_statement() {
     unique_ptr<Identifier> ident(identifier());
-    return_if_error(ident);
-    if (match({EQ}) == NONE) {
+    if (!consume_till(EQ)) {
       report_error("an '=' operator in a LET statement");
       return nullptr;
     }
     unique_ptr<MathNode> expr(expression());
-    return_if_error(expr);
-    if (!consume(NEWLINE)) {
+    if (!consume_till(NEWLINE)) {
       report_error("an EoL character");
       return nullptr;
     }
+    return_if_error(ident);
+    create_variable(ident->ident());
+    return_if_error(expr);
     return new Let(ident.release(), expr.release());
   }
 
   ASTNode *input_statement() {
     unique_ptr<Identifier> ident(identifier());
-    return_if_error(ident);
-    if (!consume(NEWLINE)) {
+    if (!consume_till(NEWLINE)) {
       report_error("an EoL character");
       return nullptr;
     }
+    return_if_error(ident);
+    create_variable(ident->ident());
     return new Input(ident.release());
   }
 
@@ -314,6 +362,7 @@ private:
   }
 
   Block *block() {
+    scoped_variables.emplace();
     vector<ASTNode *> statements;
     while (true) {
       auto result = statement();
@@ -325,17 +374,12 @@ private:
       unique_ptr<ASTNode> stmt(get<1>(result));
       if (stmt != nullptr) {
         statements.push_back(stmt.release());
-        continue;
-      }
-      // Skip the rest of the line and find more errors
-      while (true) {
-        auto token = peek();
-        if (token == NONE || token == _EOF || token == NEWLINE) {
-          break;
-        }
-        match();
       }
     }
+    for (auto &variable : scoped_variables.top()) {
+      variables.erase(variable);
+    }
+    scoped_variables.pop();
     return new Block(std::move(statements));
   }
 #undef return_if_error
@@ -343,6 +387,10 @@ private:
   TokenIterator cbegin;
   TokenIterator cend;
   vector<string> _errors;
+  unordered_set<string_view> variables;
+  unordered_set<string_view> labels;
+  unordered_set<string_view> gotoed;
+  stack<vector<string_view>> scoped_variables;
 };
 
 template <typename TokenIterator>
