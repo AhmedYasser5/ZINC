@@ -1,6 +1,7 @@
 #pragma once
 #include "base.hpp"
 #include "lexer.hpp"
+#include <assert.h>
 #include <string>
 #include <vector>
 
@@ -22,14 +23,14 @@
 
 class Block : public ASTNode {
 private:
-  std::vector<ASTNode*> _statements;
+  std::vector<ASTNode *> _statements;
 
 public:
-  Block(std::vector<ASTNode*> vec) { _statements = vec; }
+  Block(std::vector<ASTNode *> vec) { _statements = vec; }
 
   void accept(Visitor *visitor) override;
 
-  std::vector<ASTNode*> statements() const { return _statements; }
+  std::vector<ASTNode *> statements() const { return _statements; }
 };
 
 class Unary : public MathNode {
@@ -211,7 +212,7 @@ public:
   MathNode *expr() const { return _expr; }
 };
 
-class If : public ASTNode {
+class If : public Subif {
 private:
   Comparison *_comp;
   Block *_block;
@@ -231,14 +232,14 @@ public:
   }
 
   // setter
-  void next(Subif *next) { _next = next; }
+  void next(Subif *next) override { _next = next; }
 
   Block *block() const { return _block; }
 
   Comparison *comparison() const { return _comp; }
 
   // getter
-  Subif *next() const { return _next; }
+  Subif *next() const override { return _next; }
 
   void accept(Visitor *visitor) override;
 };
@@ -266,9 +267,9 @@ public:
 
   Comparison *comparison() const { return _comp; }
 
-  Subif *next() const { return _next; }
+  Subif *next() const override { return _next; }
 
-  void next(Subif *next) { _next = next; }
+  void next(Subif *next) override { _next = next; }
 
   void accept(Visitor *visitor) override;
 };
@@ -284,17 +285,9 @@ public:
 
   Block *block() const { return _block; }
 
-  void accept(Visitor *visitor) override;
-};
+  Subif *next() const override { assert(false); }
 
-  ~Else() {
-    delete _comp;
-    delete _block;
-  }
-
-  Block *block() const { return _block; }
-
-  Comparison *comparison() const { return _comp; }
+  void next(Subif *) override { assert(false); }
 
   void accept(Visitor *visitor) override;
 };
