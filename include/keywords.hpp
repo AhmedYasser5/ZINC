@@ -218,7 +218,7 @@ private:
   Subif *_next;
 
 public:
-  If(Comparison *comp, Block *block, Subif *next) {
+  If(Comparison *comp, Block *block, Subif *next = NULL) {
     _comp = comp;
     _block = block;
     _next = next;
@@ -230,10 +230,14 @@ public:
     delete _next;
   }
 
+  // setter
+  void next(Subif *next) { _next = next; }
+
   Block *block() const { return _block; }
 
   Comparison *comparison() const { return _comp; }
-  
+
+  // getter
   Subif *next() const { return _next; }
 
   void accept(Visitor *visitor) override;
@@ -246,7 +250,7 @@ private:
   Subif *_next;
 
 public:
-  Elseif(Comparison *comp, Block *block, Subif *next) {
+  Elseif(Comparison *comp, Block *block, Subif *next = NULL) {
     _comp = comp;
     _block = block;
     _next = next;
@@ -261,22 +265,27 @@ public:
   Block *block() const { return _block; }
 
   Comparison *comparison() const { return _comp; }
-  
+
   Subif *next() const { return _next; }
+
+  void next(Subif *next) { _next = next; }
 
   void accept(Visitor *visitor) override;
 };
 
 class Else : public Subif {
 private:
-  Comparison *_comp;
   Block *_block;
 
 public:
-  Else(Comparison *comp, Block *block) {
-    _comp = comp;
-    _block = block;
-  }
+  Else(Block *block) { _block = block; }
+
+  ~Else() { delete _block; }
+
+  Block *block() const { return _block; }
+
+  void accept(Visitor *visitor) override;
+};
 
   ~Else() {
     delete _comp;
