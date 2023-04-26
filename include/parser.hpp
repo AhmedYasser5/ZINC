@@ -7,7 +7,6 @@
 #include <queue>
 #include <stack>
 #include <string>
-#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 #include <variant>
@@ -21,7 +20,6 @@ using std::make_unique;
 using std::queue;
 using std::stack;
 using std::string;
-using std::string_view;
 using std::unique_ptr;
 using std::unordered_map;
 using std::unordered_set;
@@ -109,8 +107,10 @@ private:
     return match(types, true);
   }
 
-  void report_error(string_view expected) {
-    _errors.push_back("Expected ");
+  void report_error(string expected) {
+    _errors.push_back("Error on line ");
+    _errors.back() += std::to_string(cbegin->line);
+    _errors.back() += ": Expected ";
     _errors.back() += expected;
     _errors.back() += ", but found ";
     if (cbegin == cend) {
@@ -399,9 +399,9 @@ private:
         break;
       }
       // Extract the parsed statement
-      unique_ptr<ASTNode> stmt(get<1>(result));
+      ASTNode *stmt = get<1>(result);
       if (stmt != nullptr) {
-        statements.push_back(stmt.release());
+        statements.push_back(stmt);
       }
     }
     for (auto &variable : scoped_variables.top()) {
@@ -415,10 +415,10 @@ private:
   TokenIterator cbegin;
   TokenIterator cend;
   vector<string> _errors;
-  unordered_set<string_view> variables;
-  unordered_set<string_view> labels;
-  unordered_set<string_view> gotoed;
-  stack<vector<string_view>> scoped_variables;
+  unordered_set<string> variables;
+  unordered_set<string> labels;
+  unordered_set<string> gotoed;
+  stack<vector<string>> scoped_variables;
 };
 
 template <typename TokenIterator>
