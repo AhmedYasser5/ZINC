@@ -25,10 +25,15 @@ int main(int argc, char **argv) {
 
   Lexer lexer(program);
   vector<Token> lexed_program;
+  try{
   do {
     lexed_program.push_back(lexer.getToken());
   } while (lexed_program.back() != _EOF);
-
+  }
+  catch (int &e){
+     cout<<"Program terminated due to Error..."<<endl;
+    return 1 ;
+  }
   auto parsed_program =
       Parser::parse(lexed_program.cbegin(), lexed_program.cend());
   if (!parsed_program.index()) {
