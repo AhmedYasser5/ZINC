@@ -1,11 +1,12 @@
 #pragma once
+
 #include "keywords.hpp"
 #include "lexer.hpp"
 #include <iostream>
 #include <memory>
+#include <queue>
 #include <stack>
 #include <string>
-#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 #include <variant>
@@ -16,9 +17,9 @@ namespace Parser {
 using std::get;
 using std::initializer_list;
 using std::make_unique;
+using std::queue;
 using std::stack;
 using std::string;
-using std::string_view;
 using std::unique_ptr;
 using std::unordered_map;
 using std::unordered_set;
@@ -106,8 +107,10 @@ private:
     return match(types, true);
   }
 
-  void report_error(string_view expected) {
-    _errors.push_back("Expected ");
+  void report_error(string expected) {
+    _errors.push_back("Error on line ");
+    _errors.back() += std::to_string(cbegin->line);
+    _errors.back() += ": Expected ";
     _errors.back() += expected;
     _errors.back() += ", but found ";
     if (cbegin == cend) {
@@ -238,16 +241,33 @@ private:
   }
 
   ASTNode *if_statement() {
-    unique_ptr<Comparison> cmp(comparison());
-    if (!consume_till(THEN)) {
-      report_error("the keyword \"THEN\"");
-      return nullptr;
+    queue<unique_ptr<Subif>> ifelses;
+    do {
+      unique_ptr<Comparison> cmp(comparison());
+      if (!consume_till(THEN)) {
+        report_error("the keyword \"THEN\"");
+        return nullptr;
+      }
+      if (!consume(NEWLINE)) {
+        report_error("an EoL character");
+        return nullptr;
+      }
+      unique_ptr<Block> scope(block());
+      if (cmp == nullptr || scope == nullptr) {
+        ifelses.emplace(nullptr);
+      } else if (ifelses.empty()) {
+        ifelses.emplace(new If(cmp.release(), scope.release()));
+      } else {
+        ifelses.emplace(new Elseif(cmp.release(), scope.release()));
+      }
+    } while (match({ELSEIF}) != NONE);
+    if (match({ELSE}) != NONE) {
+      if (!consume(NEWLINE)) {
+        report_error("an EoL character");
+        return nullptr;
+      }
+      ifelses.emplace(new Else(block()));
     }
-    if (!consume(NEWLINE)) {
-      report_error("an EoL character");
-      return nullptr;
-    }
-    unique_ptr<Block> scope(block());
     if (!consume_till(ENDIF)) {
       report_error("the keyword \"ENDIF\"");
       return nullptr;
@@ -256,9 +276,17 @@ private:
       report_error("an EoL character");
       return nullptr;
     }
-    return_if_error(cmp);
-    return_if_error(scope);
-    return new If(cmp.release(), scope.release());
+    return_if_error(ifelses.front());
+    unique_ptr<If> whole_if(static_cast<If *>(ifelses.front().release()));
+    ifelses.pop();
+    Subif *last = whole_if.get();
+    while (!ifelses.empty()) {
+      return_if_error(ifelses.front());
+      last->next(ifelses.front().release());
+      ifelses.pop();
+      last = last->next();
+    }
+    return whole_if.release();
   }
 
   ASTNode *while_statement() {
@@ -371,9 +399,9 @@ private:
         break;
       }
       // Extract the parsed statement
-      unique_ptr<ASTNode> stmt(get<1>(result));
+      ASTNode *stmt = get<1>(result);
       if (stmt != nullptr) {
-        statements.push_back(stmt.release());
+        statements.push_back(stmt);
       }
     }
     for (auto &variable : scoped_variables.top()) {
@@ -387,10 +415,10 @@ private:
   TokenIterator cbegin;
   TokenIterator cend;
   vector<string> _errors;
-  unordered_set<string_view> variables;
-  unordered_set<string_view> labels;
-  unordered_set<string_view> gotoed;
-  stack<vector<string_view>> scoped_variables;
+  unordered_set<string> variables;
+  unordered_set<string> labels;
+  unordered_set<string> gotoed;
+  stack<vector<string>> scoped_variables;
 };
 
 template <typename TokenIterator>

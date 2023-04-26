@@ -108,6 +108,22 @@ public:
     node->comparison()->accept(this);
     out << ")\n";
     node->block()->accept(this);
+    if(node->next() != NULL)
+        node->next()->accept(this);
+  }
+
+  void visit(Elseif *node) override {
+    out << "else if (";
+    node->comparison()->accept(this);
+    out << ")\n";
+    node->block()->accept(this);
+    if(node->next() != NULL)
+        node->next()->accept(this);
+  }
+
+  void visit(Else *node) override {
+    out << "else\n";
+    node->block()->accept(this);
   }
 
   void visit(While *node) override {

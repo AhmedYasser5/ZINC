@@ -20,6 +20,8 @@ enum TOKEN_TYPE {
   WHILE = 109,
   REPEAT = 110,
   ENDWHILE = 111,
+  ELSEIF = 112,
+  ELSE = 113,
   // Operators
   EQ = 201,
   PLUS = 202,
@@ -38,6 +40,7 @@ class Token {
 public:
   TOKEN_TYPE type;
   std::string text;
+  int line;
   Token(std::string Text, TOKEN_TYPE T);
   Token();
   bool operator==(TOKEN_TYPE type) const;
@@ -49,11 +52,11 @@ public:
   std::string source;
   char curChar;
   int curPos;
+  int curLine;
   Lexer(std::string s);
   void nextChar();
   char Peek();
   Token getToken();
-  int abort(std::string message);
   void skipWhitespace();
   void skipComment();
 };

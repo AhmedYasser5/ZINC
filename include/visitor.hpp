@@ -33,6 +33,10 @@ public:
 
   virtual void visit(If *node) = 0;
 
+  virtual void visit(Elseif *node) = 0;
+
+  virtual void visit(Else *node) = 0;
+
   virtual void visit(While *node) = 0;
 
   virtual void visit(Goto *node) = 0;

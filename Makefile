@@ -11,32 +11,28 @@ BINDIR := .
 
 SHELL := /bin/bash
 
-MY_FLAGS := -I$(BINDIR) -I$(INCDIR)
-
-CC = clang
-CFLAGS = $(MY_FLAGS) -Wall -Wextra -Wno-unused-result -Wno-unused-command-line-argument
-CXX = clang++
-CXXFLAGS = $(CFLAGS) -std=c++17
-LD = clang++
+CXX = g++
+CXXFLAGS = -std=c++17 -Wall -Wextra -Wno-unused-result -Wno-unused-command-line-argument
+LD = g++
 LDFLAGS = $(CXXFLAGS)
-DEBUGGER = lldb
+DEBUGGER = gdb
 
 ifeq ($(RELEASE), 1)
 	maketype := release
-	CFLAGS += -O2 -ftree-vectorize -fomit-frame-pointer -march=native
+	CXXFLAGS += -O2 -ftree-vectorize -fomit-frame-pointer -march=native
 	# Link Time Optimization
-	CFLAGS += -flto
+	CXXFLAGS += -flto
 else
 	maketype := debug
-	CFLAGS += -Og -ggdb3 -DDEBUG=1
+	CXXFLAGS += -Og -ggdb3 -DDEBUG=1
 	# Overflow protection
-	CFLAGS += -D_FORTIFY_SOURCE=2 -fstack-protector-strong -fcf-protection
-	CFLAGS += -Wl,-z,defs -Wl,-z,now -Wl,-z,relro
+	CXXFLAGS += -D_FORTIFY_SOURCE=2 -fstack-protector-strong -fcf-protection
+	CXXFLAGS += -Wl,-z,defs -Wl,-z,now -Wl,-z,relro
 	CXXFLAGS += -D_GLIBCXX_ASSERTIONS
-	CFLAGS += -fsanitize=address -fsanitize=undefined -fsanitize=leak
+	#CXXFLAGS += -fsanitize=address -fsanitize=undefined -fsanitize=leak
 endif
 
-CFLAGS += -MMD -MP
+CXXFLAGS += -MMD -MP -I$(BINDIR) -I$(INCDIR)
 
 SRCS := $(shell find $(SRCDIR) -regextype posix-extended -regex .*[.]c\(pp\|\) 2>/dev/null)
 
@@ -65,8 +61,6 @@ getTarget :
 init :
 	-@rm -rf build
 	@mkdir -p $(SRCDIR) $(INCDIR)
-	@for i in $(wildcard *.cpp) $(wildcard *.c); do mv ./$$i $(SRCDIR)/$$i; done
-	@for i in $(wildcard *.hpp) $(wildcard *.h); do mv ./$$i $(INCDIR)/$$i; done
 	@$(file >compile_flags.txt)
 	@$(foreach i,$(CXXFLAGS),$(file >>compile_flags.txt,$(i)))
 

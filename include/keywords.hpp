@@ -1,6 +1,7 @@
 #pragma once
 #include "base.hpp"
 #include "lexer.hpp"
+#include <assert.h>
 #include <string>
 #include <vector>
 
@@ -27,14 +28,9 @@ private:
 public:
   Block(std::vector<ASTNode *> vec) { _statements = vec; }
 
-  ~Block() {
-    for (auto it : _statements)
-      delete it;
-  }
-
   void accept(Visitor *visitor) override;
 
-  const std::vector<ASTNode *> &statements() const { return _statements; }
+  std::vector<ASTNode *> statements() const { return _statements; }
 };
 
 class Unary : public MathNode {
@@ -163,7 +159,7 @@ public:
 
   void accept(Visitor *visitor) override;
 
-  const std::string &str() const { return _str; }
+  std::string str() const { return _str; }
 };
 
 class Identifier : public Primary {
@@ -175,7 +171,7 @@ public:
 
   void accept(Visitor *visitor) override;
 
-  const std::string &ident() const { return _ident; }
+  std::string ident() const { return _ident; }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -216,25 +212,82 @@ public:
   MathNode *expr() const { return _expr; }
 };
 
-class If : public ASTNode {
+class If : public Subif {
 private:
   Comparison *_comp;
   Block *_block;
+  Subif *_next;
 
 public:
-  If(Comparison *comp, Block *block) {
+  If(Comparison *comp, Block *block, Subif *next = NULL) {
     _comp = comp;
     _block = block;
+    _next = next;
   }
 
   ~If() {
     delete _comp;
     delete _block;
+    delete _next;
+  }
+
+  // setter
+  void next(Subif *next) override { _next = next; }
+
+  Block *block() const { return _block; }
+
+  Comparison *comparison() const { return _comp; }
+
+  // getter
+  Subif *next() const override { return _next; }
+
+  void accept(Visitor *visitor) override;
+};
+
+class Elseif : public Subif {
+private:
+  Comparison *_comp;
+  Block *_block;
+  Subif *_next;
+
+public:
+  Elseif(Comparison *comp, Block *block, Subif *next = NULL) {
+    _comp = comp;
+    _block = block;
+    _next = next;
+  }
+
+  ~Elseif() {
+    delete _comp;
+    delete _block;
+    delete _next;
   }
 
   Block *block() const { return _block; }
 
   Comparison *comparison() const { return _comp; }
+
+  Subif *next() const override { return _next; }
+
+  void next(Subif *next) override { _next = next; }
+
+  void accept(Visitor *visitor) override;
+};
+
+class Else : public Subif {
+private:
+  Block *_block;
+
+public:
+  Else(Block *block) { _block = block; }
+
+  ~Else() { delete _block; }
+
+  Block *block() const { return _block; }
+
+  Subif *next() const override { assert(false); }
+
+  void next(Subif *) override { assert(false); }
 
   void accept(Visitor *visitor) override;
 };
