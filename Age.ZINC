@@ -1,0 +1,9 @@
+PRINT "Enter your age: "
+INPUT age
+IF age < 18 THEN
+    PRINT "You are a minor."
+ELSEIF age < 65 THEN
+    PRINT "You are an adult."
+ELSE
+    PRINT "You are a senior citizen."
+ENDIF

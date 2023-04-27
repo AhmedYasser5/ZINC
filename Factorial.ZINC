@@ -1,0 +1,15 @@
+PRINT "Enter a number: "
+INPUT n
+LET factorial = 1
+LET i = n
+IF n == 0 THEN
+GOTO A
+ENDIF
+WHILE i > 0 REPEAT
+LET factorial = factorial * i
+LET i  = i - 1
+ENDWHILE
+LABEL A
+PRINT "The factorial of "
+PRINT n
+PRINT factorial

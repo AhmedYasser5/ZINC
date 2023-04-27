@@ -1,0 +1,15 @@
+ PRINT "Enter the number of nums starting from 1 you want to calculate the sum for."
+ INPUT a 
+ LET sum = 0
+ LET i = 1 
+ IF a <= 0 THEN
+ PRINT "Invalid entry"
+ GOTO END
+ ENDIF 
+ WHILE i<=a REPEAT
+ LET sum = sum + i 
+ LET i = i + 1
+ ENDWHILE
+ PRINT "Sum is "
+ PRINT sum
+ LABEL END

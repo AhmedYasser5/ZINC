@@ -1,0 +1,10 @@
+# a program that won't print anything when 0 is entered 
+PRINT "Please enter any number other than zero"
+INPUT num 
+IF num == 0 THEN
+GOTO END
+ENDIF
+# If the num is Zero
+# this line will be skipped because of GOTO 
+PRINT "The number is not Zero"
+LABEL END

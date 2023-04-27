@@ -1,0 +1,7 @@
+PRINT "Enter the length of the rectangle: "
+INPUT length
+PRINT "Enter the width of the rectangle: "
+INPUT width
+LET area = length * width
+PRINT "The area of the rectangle is "
+PRINT area
