@@ -1,4 +1,12 @@
-#!/bin/env bash
+#!/usr/bin/env bash
+for program in clang-format make time
+do
+	if ! which "$program" >/dev/null
+	then
+		printf "The program %s is required" "$program"
+		exit 1
+	fi
+done
 set -e
 c=0; d=0; r=0; o=0
 while (( $# > 0 )) && [ "${1:0:1}" == "-" ]
@@ -13,17 +21,20 @@ do
 		elif [ "$char" == "r" ]; then r=1
 		elif [ "$char" == "o" ]; then o=1
 		else
-			printf "This program compiles c/cpp files using make. It also runs the \
+			printf "This script compiles cpp files using make. It also runs the \
 executable file and calculates the elapsed time.
 The default build uses debugging configurations.\n
-./compile_and_run.sh [options] [--] [arg1 arg2 ...]\n
+Use this script to compile ZINC transcompiler (if not compiled), extract cpp \
+code from ZINC file, compile it, and finally run the executable.\n
+./run.sh [options] [--] [arg1 arg2 ...]\n
 Options:
-\t-c\tclean (deletes) already built files that have the configurations given (debug or release)
+\t-c\tclean (delete) already built files with the configurations given (debug or release)
 \t-r\tbuild using release configurations
-\t-d\tbuild using debug configurations, and runs the debugger
-\t-h\tshow this help message
-\t-o\tcompile only\n
-\t--\tsend the remaining parameters as arguments to main function (this should be the last argument)\n"
+\t-d\tbuild using debug configurations, and run the debugger
+\t-o\tcompile only
+\t-h\tshow this help message\n
+\t--\tsend the remaining parameters as arguments to main function (this should be the last argument)
+\t\tNote: this can be omitted if the first argument does not start with \'-\'\n"
 			[ "$char" == "h" ]
 			exit
 		fi
@@ -43,15 +54,14 @@ if (( o == 1 )); then
 	exit
 fi
 filename=$(make RELEASE=$r getTarget)
-echo ------------------------------------------------------------
-command time -f "\n--------------------------------------------------\n\
+printf "------------------------------------------------------------\n"
+command time -f "\n------------------------------------------------------------\n\
 Elapsed Time: %e sec\nCPU Percentage: %P" "$filename" "$@"
 cpp_file="${1::-4}cpp"
 clang-format -i "$cpp_file"
 output_program="${cpp_file::-4}"
 make "$output_program"
-echo ------------------------------------------------------------
+printf "------------------------------------------------------------\n"
 cat "$cpp_file"
-echo ------------------------------------------------------------
-echo "Running your program:"
+printf "------------------------------------------------------------\nRunning your program:\n"
 "./$output_program"
