@@ -1,0 +1,45 @@
+User requirements, Functional, non-Functional
+
+**Purpose
+The Purpose of this project is to build source to source compiler which is a compiler that takes
+  a source code from one language and rewrite the code into another source code of the target language
+This kind of system software can be usefull in cases like the following:
+  - Running old or lagacy code on modern machines / compilers and with modern architecture
+  - Testing new programming language before implementing compiler ( to machine code )
+  - Adding new features to a programming language in early phase before completely delploy
+  the features.
+  - Example: python2 to python3
+
+we are building Basic to C++ compiler.
+  The reason of choosing both of these languages is that both are well documented and both have clear and well estableshed
+  grammer which we can work with.
+
+**Scope
+This project is intended to develop a compiler that supports basic features of a high-level
+  programming language such as variables, data types, expressions, statements and control structures
+  the data types supported are strings and double.
+  The compiler will not support advanced features such as classes, inheritance, functions,
+    polymorphism or exception handling.
+
+
+** Objectives
+The objectives of this project are to:
+  - Develop a compiler that can translate source code written in a high-level
+  programming language into another high level language.
+  - Ensure that the compiler produces correct target code that conforms to the syntax and 
+  semantics of the source language.
+  - Provide a user-friendly interface and documentation for using the compiler.
+  - Complete the project within the budget and schedule constraints.
+
+**Assumptions
+The assumptions for this project are: 
+  - The source language is well-defined and has a formal grammar and semantics. 
+  - The target platform and instruction set architecture are stable and well-documented. 
+  - The users of the compiler have basic knowledge of programming and computer systems.”
+
+**Constraints
+The constraints for this project are: 
+  - The compiler must be written in C++ programming language. 
+  - The compiler should run on Linux operating system.
+  - The compiler must comply with relevant standards and regulations.
+  - C++ compler should exist on target machine ( clang++ )
