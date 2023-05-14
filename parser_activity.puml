@@ -1,0 +1,229 @@
+@startuml
+
+split
+-[hidden]->
+|Parser|
+start
+	:Create parser object;
+	:Send lexed program\nfor parsing into AST;
+	(P)
+	if (Errors?) then (yes)
+		:Return Errors;
+		stop
+	else (no)
+		:Return AST;
+		stop
+	endif
+
+split again
+-[hidden]->
+|Program|
+(P)
+	:Start parsing a block;
+	(B)
+	:Check if EoF is not there;
+	:Check for errors with\nGOTO and LABEL;
+	:Return pointer to\nAST if valid;
+end
+
+split again
+-[hidden]->
+|Block|
+(B)
+	:Maintain new scope's variables;
+	repeat :Parse a statement;
+		(S)
+	repeatwhile (Statement was\nread successfully?) is (yes)
+	->no;
+	:Remove variables from scope;
+	:Return pointer\nto AST;
+end
+
+split again
+-[hidden]->
+|PRINT|
+(R)
+	switch (Type of parameter?)
+	case (String)
+		:Parse String;
+	case (Expression)
+		:Parse Expression;
+		(X)
+	endswitch
+	:Log errors (if any);
+	:Return valid AST (if any);
+end
+
+split again
+-[hidden]->
+|IF|
+(I)
+	repeat :Parse Comparison;
+		(C)
+		->THEN;
+		:Parse Block;
+		(B)
+	repeat while (Next Keyword?) is (ELSEIF)
+	if (Next Keyword?) is (ELSE) then
+		:Parse Block;
+		(B)
+	endif
+	->ENDIF;
+	:Log errors (if any);
+	:Return valid AST (if any);
+end
+
+split again
+-[hidden]->
+|WHILE|
+(W)
+	:Parse Comparison;
+	(C)
+	->REPEAT;
+	:Parse Block;
+	(B)
+	->ENDWHILE;
+	:Log errors (if any);
+	:Return valid AST (if any);
+end
+
+split again
+-[hidden]->
+|LABEL|
+(L)
+	:Parse Identifier;
+	:Log errors (if any);
+	:Return valid AST (if any);
+end
+
+split again
+-[hidden]->
+|GOTO|
+(G)
+	:Parse Identifier;
+	:Log errors (if any);
+	:Return valid AST (if any);
+end
+
+split again
+-[hidden]->
+|LET|
+(E)
+	:Parse Identifier;
+	->=;
+	:Parse Expression;
+	(X)
+	:Log errors (if any);
+	:Return valid AST (if any);
+end
+
+split again
+-[hidden]->
+|INPUT|
+(N)
+	:Parse Identifier;
+	:Log errors (if any);
+	:Return valid AST (if any);
+end
+
+split again
+-[hidden]->
+|Statement|
+(S)
+	switch (Type of statement?)
+	case (PRINT)
+		:Parse PRINT;
+		(R)
+	case (IF)
+		:Parse IF;
+		(I)
+	case (WHILE)
+		:Parse WHILE;
+		(W)
+	case (LABEL)
+		:Parse LABEL;
+		(L)
+	case (GOTO)
+		:Parse GOTO;
+		(G)
+	case (LET)
+		:Parse LET;
+		(E)
+	case (INPUT)
+		:Parse INPUT;
+		(N)
+	case (Not a statement)
+		:Return without statement;
+		end
+	endswitch
+	:Return parsed statement;
+end
+
+split again
+-[hidden]->
+|Comparison|
+(C)
+	:Parse Expression;
+	(X)
+	:Parse Comparison\nOperator;
+	:Parse Expression;
+	(X)
+	while (Next Token?) is (Comparison\nOperator)
+		:Parse Expression;
+		(X)
+	endwhile
+	:Log errors (if any);
+	:Return valid AST (if any);
+end
+
+split again
+-[hidden]->
+|Expression|
+(X)
+	:Parse Term;
+	(T)
+	while (Next Token?) is ('+' or '-')
+		:Parse Term;
+		(T)
+	endwhile
+	:Return valid AST (if any);
+end
+
+split again
+-[hidden]->
+|Term|
+(T)
+	:Parse Unary;
+	(U)
+	while (Next Token?) is ('*' or '/')
+		:Parse Unary;
+		(U)
+	endwhile
+	:Return valid AST (if any);
+end
+
+split again
+-[hidden]->
+|Unary|
+(U)
+	:Parse '+' or '-'\nsign (if any);
+	:Parse Primary;
+	(Y)
+	:Return valid AST (if any);
+end
+
+split again
+-[hidden]->
+|Primary|
+(Y)
+	switch (Type?)
+	case (Identifier)
+		:Parse Identifier;
+	case (Number)
+		:Parse Number;
+	endswitch
+	:Log errors (if any);
+	:Return valid AST (if any);
+end
+
+@enduml
