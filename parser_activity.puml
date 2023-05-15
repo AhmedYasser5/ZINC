@@ -41,6 +41,43 @@ end
 
 split again
 -[hidden]->
+|Statement|
+(S)
+	switch (Type of statement?)
+	case (PRINT)
+		:Parse PRINT;
+		(R)
+	case (IF)
+		:Parse IF;
+		(I)
+	case (WHILE)
+		:Parse WHILE;
+		(W)
+	case (LABEL)
+		:Parse LABEL;
+		(L)
+	case (GOTO)
+		:Parse GOTO;
+		(G)
+	case (LET)
+		:Parse LET;
+		(E)
+	case (INPUT)
+		:Parse INPUT;
+		(N)
+	case (Not a statement)
+		:Return without statement;
+		end
+	endswitch
+	:Return parsed statement;
+end
+
+@enduml
+
+@startuml
+
+split
+-[hidden]->
 |PRINT|
 (R)
 	switch (Type of parameter?)
@@ -126,46 +163,17 @@ split again
 	:Return valid AST (if any);
 end
 
-split again
--[hidden]->
-|Statement|
-(S)
-	switch (Type of statement?)
-	case (PRINT)
-		:Parse PRINT;
-		(R)
-	case (IF)
-		:Parse IF;
-		(I)
-	case (WHILE)
-		:Parse WHILE;
-		(W)
-	case (LABEL)
-		:Parse LABEL;
-		(L)
-	case (GOTO)
-		:Parse GOTO;
-		(G)
-	case (LET)
-		:Parse LET;
-		(E)
-	case (INPUT)
-		:Parse INPUT;
-		(N)
-	case (Not a statement)
-		:Return without statement;
-		end
-	endswitch
-	:Return parsed statement;
-end
+@enduml
 
-split again
+@startuml
+
+split
 -[hidden]->
 |Comparison|
 (C)
 	:Parse Expression;
 	(X)
-	:Parse Comparison\nOperator;
+	:Parse Comparison Operator;
 	:Parse Expression;
 	(X)
 	while (Next Token?) is (Comparison\nOperator)
