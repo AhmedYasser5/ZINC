@@ -59,7 +59,7 @@ command time -f "\n------------------------------------------------------------\
 Elapsed Time: %e sec\nCPU Percentage: %P" "$filename" "$@"
 cpp_file="${1::-4}cpp"
 clang-format -i "$cpp_file"
-output_program="${cpp_file::-4}"
+output_program="${cpp_file::-4}.exe"
 make "$output_program"
 printf -- "------------------------------------------------------------\n"
 cat "$cpp_file"
