@@ -28,7 +28,7 @@ The extracted tokens are then passed to the parser which converts sequence of to
 
 The final stage is the emitter which takes in complete statements and emits their corresponding C++ statements. The final output is saved to a file with the same name as the input file with ".cpp" extension.
 
-Finally, if the provided script is used, the output file will be formatted using `clang-format`, compiled using `make`, and run eventually.
+Finally, if the provided script was used, the output file would be formatted using `clang-format`, compiled using `make`, and run eventually.
 
 ## Usage
 
