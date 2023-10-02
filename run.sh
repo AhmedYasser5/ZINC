@@ -54,14 +54,14 @@ if (( o == 1 )); then
 	exit
 fi
 filename=$(make RELEASE=$r getTarget)
-printf "------------------------------------------------------------\n"
+printf -- "------------------------------------------------------------\n"
 command time -f "\n------------------------------------------------------------\n\
 Elapsed Time: %e sec\nCPU Percentage: %P" "$filename" "$@"
 cpp_file="${1::-4}cpp"
 clang-format -i "$cpp_file"
 output_program="${cpp_file::-4}"
 make "$output_program"
-printf "------------------------------------------------------------\n"
+printf -- "------------------------------------------------------------\n"
 cat "$cpp_file"
-printf "------------------------------------------------------------\nRunning your program:\n"
+printf -- "------------------------------------------------------------\nRunning your program:\n"
 "./$output_program"
