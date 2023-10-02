@@ -1,42 +1,10 @@
 # ZINC
+ZINC Is a Normal Compiler
 
-ZINC (stands for "ZINC Is a Normal Compiler") is a transcompiler that converts
-some of the BASIC programming language syntax into C++.
-
-```mermaid
-flowchart LR
-    input[/BASIC File/] --> lexer["Lexer"]
-    subgraph Transcompiler
-        lexer --> tokens[/Tokens/]
-        tokens --> parser["Parser"]
-        parser --> ast[/AST/]
-        ast --> emitter["Emitter"]
-    end
-    emitter --> output[/C++ File/]
-    output --> compiler["C++ Compiler"]
-    compiler --> executable[/Executable/]
-
-    click lexer "https://github.com/AhmedYasser5/ZINC/blob/main/include/lexer.hpp"
-    click parser "https://github.com/AhmedYasser5/ZINC/blob/main/include/parser.hpp"
-    click emitter "https://github.com/AhmedYasser5/ZINC/blob/main/include/emitter.hpp"
-    click compiler "https://github.com/AhmedYasser5/ZINC/blob/main/run.sh"
-```
-
-As shown in the flowchart, the transcompiler has $3$ stages. The first one is a lexer that reads the file whose path is supplied as an argument. The words there are separated and tokens are identified, so that some words become keywords while others become identifiers or operators, and so on.
-
-The extracted tokens are then passed to the parser which converts sequence of tokens into an AST (i.e. Abstract Syntax Tree). It also checks for some syntax errors before passing the tree to the next stage.
-
-The final stage is the emitter which takes in complete statements and emits their corresponding C++ statements. The final output is saved to a file with the same name as the input file with ".cpp" extension.
-
-Finally, if the provided script is used, the output file will be formatted using `clang-format`, compiled using `make`, and run eventually.
-
-## Usage
-
-To compile and run the compiler, just use the script as follows:
-
-```bash
-$ ./run.sh -r -- <filename>.ZINC
-```
+## Development Instructions
+* Before you start, run `make init` to generate the directories needed. `src` directory should only contain source files while `include` directory should only contain header files. You can make multiple directories with any structure you want.
+* `g++` is used in the `Makefile`, along with `gdb` for debugging.
+* To compile and run the program, run `./run.sh` for debugging mode, and `./run.sh -r` for release mode. See `./run.sh -h` for more options.
 
 ## Coding, syntax and supported commands
 ### Operators 
