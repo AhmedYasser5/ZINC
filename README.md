@@ -24,7 +24,7 @@ flowchart LR
 
 As shown in the flowchart, the transcompiler has $3$ stages. The first one is a lexer that reads the file whose path is supplied as an argument. The words there are separated and tokens are identified, so that some words become keywords while others become identifiers or operators, and so on.
 
-The extracted tokens are then passed to the parser which converts sequence of tokens into an AST (i.e. Abstract Syntax Tree). It also checks for some syntax errors before passing the tree to the next stage.
+The extracted tokens are then passed to the parser which converts sequence of tokens into an AST (Abstract Syntax Tree). It also checks for some syntax errors before passing the tree to the next stage.
 
 The final stage is the emitter which takes in complete statements and emits their corresponding C++ statements. The final output is saved to a file with the same name as the input file with ".cpp" extension.
 
