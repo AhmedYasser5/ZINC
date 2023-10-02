@@ -35,7 +35,7 @@ Finally, if the provided script was used, the output file would be formatted usi
 To compile and run the compiler, just use the script as follows:
 
 ```bash
-$ ./run.sh -r -- <filename>.ZINC
+$ ./run.sh -r -- <filepath>
 ```
 
 ## Coding, syntax and supported commands
