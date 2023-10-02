@@ -21,7 +21,7 @@ ifeq ($(RELEASE), 1)
 	maketype := release
 	CXXFLAGS += -O2 -ftree-vectorize -fomit-frame-pointer -march=native
 	# Link Time Optimization
-	CXXFLAGS += -flto
+	LDFLAGS += -flto
 else
 	maketype := debug
 	CXXFLAGS += -Og -ggdb3 -DDEBUG=1
