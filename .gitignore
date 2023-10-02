@@ -1,3 +1,5 @@
-build
-.nvimrc
-compile_flags.txt
+/build
+/.nvimrc
+/compile_flags.txt
+/examples/*.cpp
+/examples/*.exe
