@@ -1,0 +1,10 @@
+# This program has multiple failure messages
+PRINT number
+PRINT "Enter a number"
+INPUT number
+IF number != 0 THEN
+    PRINT "Hello World"
+    GOTO END
+ELSE
+    PRINT Num
+PRINT "This is the end of program"

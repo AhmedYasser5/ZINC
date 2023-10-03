@@ -38,11 +38,9 @@ public:
     if (match({_EOF}) == NONE) {
       report_error("an EoF");
     }
-    for (auto &gotoed : gotoed) {
+    for (auto &[gotoed, token] : gotoed) {
       if (labels.find(gotoed) == labels.end()) {
-        _errors.push_back("Label \"");
-        _errors.back() += gotoed;
-        _errors.back() += "\" was used without being declared";
+        report_error("a declared label", token);
       }
     }
     if (!_errors.empty()) {
@@ -107,17 +105,21 @@ private:
     return match(types, true);
   }
 
-  void report_error(string expected) {
+  void report_error(const string &expected, const Token &token) {
     _errors.push_back("Error on line ");
-    _errors.back() += std::to_string(cbegin->line);
+    _errors.back() += std::to_string(token.line);
     _errors.back() += ": Expected ";
     _errors.back() += expected;
     _errors.back() += ", but found ";
     if (cbegin == cend) {
       _errors.back() += "an unexpected EoF";
     } else {
-      _errors.back() += "\"" + cbegin->text + "\"";
+      _errors.back() += "\"" + token.text + "\"";
     }
+  }
+
+  void report_error(const string &expected) {
+    report_error(expected, *cbegin);
   }
 
   StringLiteral *string_literal() {
@@ -210,11 +212,10 @@ private:
       report_error("a primary");
       return nullptr;
     }
+    const auto current_token = *cbegin;
     unique_ptr<Identifier> ident(identifier());
     if (variables.find(ident->ident()) == variables.end()) {
-      _errors.push_back("Variable \"");
-      _errors.back() += ident->ident();
-      _errors.back() += "\" used without being defined";
+      report_error("a previously defined variable", current_token);
       return nullptr;
     }
     return ident.release();
@@ -325,13 +326,14 @@ private:
   }
 
   ASTNode *goto_statement() {
+    const auto current_token = *cbegin;
     unique_ptr<Identifier> ident(identifier());
     if (!consume_till(NEWLINE)) {
       report_error("an EoL character");
       return nullptr;
     }
     return_if_error(ident);
-    gotoed.insert(ident->ident());
+    gotoed.insert(make_pair(ident->ident(), current_token));
     return new Goto(ident.release());
   }
 
@@ -417,7 +419,7 @@ private:
   vector<string> _errors;
   unordered_set<string> variables;
   unordered_set<string> labels;
-  unordered_set<string> gotoed;
+  unordered_map<string, Token> gotoed;
   stack<vector<string>> scoped_variables;
 };
 
