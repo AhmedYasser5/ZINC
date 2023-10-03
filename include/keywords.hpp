@@ -28,6 +28,12 @@ private:
 public:
   Block(std::vector<ASTNode *> vec) { _statements = vec; }
 
+  ~Block() {
+    for (auto statement : _statements) {
+      delete statement;
+    }
+  }
+
   void accept(Visitor *visitor) override;
 
   std::vector<ASTNode *> statements() const { return _statements; }
