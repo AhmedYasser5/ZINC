@@ -1,6 +1,6 @@
 # ZINC
 
-ZINC (stands for "ZINC Is a Normal Compiler") is a transcompiler that converts
+ZINC (stands for "ZINC Is a Nice Compiler") is a transcompiler that converts
 some of the BASIC programming language syntax into C++.
 
 ```mermaid
